@@ -1,0 +1,240 @@
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color:#1b8ac7;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* App.css */
+
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+.sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 200px;
+  height: 100%;
+  background-color: #1b8ac7;
+  color: #fff;
+  padding-top: 20px;
+}
+
+.sidebar ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.sidebar ul li {
+  padding: 10px 15px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.sidebar ul li:hover {
+  background-color: #1b8ac7;
+}
+
+.sidebar ul li.active {
+  background-color: #1b8ac7;
+}
+
+.content {
+  margin-left: 200px;
+  padding: 20px;
+}
+
+.header {
+  background-color: #1b8ac7;
+  color: #fff;
+  padding: 10px 20px;
+  margin-left: 200px;
+}
+
+.table-container {
+  margin-top: 20px;
+}
+
+.table-container table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table-container table th, .table-container table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+}
+
+.table-container table th {
+  background-color: #f2f2f2;
+  color: #333;
+  text-align: left;
+}
+
+.table-container table tbody tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+.table-container table tbody tr:hover {
+  background-color: #ddd;
+}
+
+.no-payroll {
+  margin-top: 20px;
+  padding: 10px;
+  background-color: #f2f2f2;
+  text-align: center;
+}
+
+.button-container {
+  margin-top: 20px;
+}
+
+.button-container button {
+  margin-right: 10px;
+  padding: 10px 20px;
+  background-color: #1b8ac7;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.button-container button:hover {
+  background-color: #45a049;
+}
+
+.input-container {
+  margin-bottom: 10px;
+}
+
+.input-container input[type="text"],
+.input-container input[type="number"] {
+  width: calc(50% - 0px);
+  padding: 8px;
+  margin-right: 8px;
+}
+
+.input-container input[type="text"] {
+  margin-bottom: 10px;
+}
+
+.input-container input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+.input-container input[type="number"]::-webkit-outer-spin-button,
+.input-container input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.input-container label {
+  display: block;
+  margin-bottom: 5px;
+  color: #333;
+}
+
+.add-button {
+  margin-top: 20px;
+}
+
+.add-button button {
+  margin-right: 10px;
+  padding: 10px 20px;
+  background-color: #1b8ac7;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.add-button button:hover {
+  background-color: #45a049;
+}
+
+.input-container select {
+  width: 10%;
+  padding: 10px;
+  margin: 10px 0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: #f9f9f9;
+  font-size: 16px;
+  transition: border-color 0.3s ease;
+}
+
+.input-container select:focus {
+  border-color: #007bff;
+  outline: none;
+}
+
+.input-container select option {
+  padding: 10px;
+}
+
+.receipt-container {
+  margin-top: 20px;
+}
+
+.receipt-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.receipt-card {
+  background: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  flex: 1 1 300px;
+}
+
+.receipt-card h3 {
+  margin-top: 0;
+}
+
+.receipt-card p {
+  margin: 5px 0;
+}
+
+.add-button {
+  margin-top: 20px;
+}
+
