@@ -1,24 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const computeSalary = (grossSalary) => {
-  let paye;
-  if (grossSalary <= 235000) {
-    paye = 0;
-  } else if (grossSalary <= 335000) {
-    paye = (grossSalary - 235000) * 0.1;
-  } else if (grossSalary <= 410000) {
-    paye = ((grossSalary - 335000) * 0.2) + 10000;
-  } else if (grossSalary <= 10000000) {
-    paye = ((grossSalary - 410000) * 0.3) + 25000;
-  } else {
-    paye = ((grossSalary - 410000) * 0.3) + 25000 + ((grossSalary - 10000000) * 0.1);
-  }
-  const nssf = grossSalary * 0.05;
-  const netSalary = grossSalary - paye - nssf;
-  return { paye, nssf, netSalary };
-};
-
 const EmployeeForm = ({ employees, setEmployees }) => {
   const [newEmployee, setNewEmployee] = useState({ 
     name: '', 
@@ -29,29 +11,25 @@ const EmployeeForm = ({ employees, setEmployees }) => {
     mobileNumber: '',
     bankAccountNumber: ''
   });
-  const navigate = useNavigate();
-
-  const addEmployee = () => {
-    const updatedEmployees = [...employees, newEmployee];
-    setEmployees(updatedEmployees);
-    localStorage.setItem('employees', JSON.stringify(updatedEmployees)); // Update local storage
-    setNewEmployee({ 
-      name: '', 
-      grossSalary: '', 
-      tinNumber: '', 
-      nssfNumber: '', 
+  const addEmployee = async () => {
+    const response = await fetch('http://localhost:5000/employee', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(newEmployee),
+    });
+    const data = await response.json();
+    setEmployees([...employees, data]);
+    setNewEmployee({
+      name: '',
+      grossSalary: '',
+      tinNumber: '',
+      nssfNumber: '',
       preferredPaymentMode: 'Bank',
       mobileNumber: '',
-      bankAccountNumber: ''
+      bankAccountNumber: '',
     });
-  };
-
-  const calculateSalaries = () => {
-    const details = employees.map(employee => {
-      const { paye, nssf, netSalary } = computeSalary(parseFloat(employee.grossSalary));
-      return { ...employee, paye, nssf, netSalary };
-    });
-    navigate('/salary-details', { state: { salaryDetails: details } });
   };
 
   return (
@@ -143,11 +121,6 @@ const EmployeeForm = ({ employees, setEmployees }) => {
           <button onClick={addEmployee}>Add Employee</button>
         </div>
 
-        <div className="button-container">
-          {employees.length > 0 && (
-            <button onClick={calculateSalaries}>Calculate Salaries</button>
-          )}
-        </div>
       </div>
     </div>
   );

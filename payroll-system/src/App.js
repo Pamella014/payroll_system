@@ -6,16 +6,7 @@ import SalaryDetails from './SalaryDetails';
 import './App.css';
 
 const App = () => {
-  const [employees, setEmployees] = useState(() => {
-    // Initialize state with local storage data
-    const storedEmployees = localStorage.getItem('employees');
-    return storedEmployees ? JSON.parse(storedEmployees) : [];
-  });
-
-  useEffect(() => {
-    // Update localStorage whenever employees state changes
-    localStorage.setItem('employees', JSON.stringify(employees));
-  }, [employees]);
+  const [employees, setEmployees] = useState([]);
 
   return (
     <Router>
@@ -27,7 +18,7 @@ const App = () => {
           />
           <Route 
             path="/employees" 
-            element={<EmployeeList employees={employees} />} 
+            element={<EmployeeList employees={employees} setEmployees={setEmployees}/>} 
           />
           <Route 
             path="/salary-details" 

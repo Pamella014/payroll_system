@@ -1,9 +1,23 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import { useNavigate } from 'react-router-dom';
 import computeSalary from './ComputeSalary';// Ensure you have this utility function
 
-const EmployeeList = ({ employees }) => {
+const EmployeeList = ({ employees, setEmployees }) => {
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchEmployees = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/employees');
+        const data = await response.json();
+        setEmployees(data);
+      } catch (error) {
+        console.error('Error fetching employees:', error);
+      }
+    };
+    fetchEmployees();
+  }, [setEmployees]);
+
 
   const calculateSalaries = () => {
     const details = employees.map(employee => {
@@ -43,8 +57,8 @@ const EmployeeList = ({ employees }) => {
                 <th>TIN Number</th>
                 <th>NSSF Number</th>
                 <th>Preferred Payment Mode</th>
-                <th>Mobile Number</th>
-                <th>Bank Account Number</th>
+                {/* <th>Mobile Number</th>
+                <th>Bank Account Number</th> */}
               </tr>
             </thead>
             <tbody>
@@ -55,8 +69,8 @@ const EmployeeList = ({ employees }) => {
                   <td>{employee.tinNumber}</td>
                   <td>{employee.nssfNumber}</td>
                   <td>{employee.preferredPaymentMode}</td>
-                  <td>{employee.mobileNumber}</td>
-                  <td>{employee.bankAccountNumber}</td>
+                  {/* <td>{employee.mobileNumber}</td>
+                  <td>{employee.bankAccountNumber}</td> */}
                 </tr>
               ))}
             </tbody>
