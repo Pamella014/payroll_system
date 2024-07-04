@@ -48,6 +48,9 @@ const EmployeeList = ({ employees, setEmployees }) => {
             <button onClick={calculateSalaries}>Calculate Salaries</button>
           </div>
         )}
+        <div className='button-container'>
+            <button onClick={calculateSalaries}>Add Employee</button>
+          </div>
         <div className="table-container">
           <table>
             <thead>

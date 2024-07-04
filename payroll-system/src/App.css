@@ -87,6 +87,13 @@ body {
   margin-left: 200px;
 }
 
+.register_header {
+  background-color: #1b8ac7;
+  color: #fff;
+  padding: 10px 20px;
+  margin-left: 0px;
+}
+
 .table-container {
   margin-top: 20px;
 }

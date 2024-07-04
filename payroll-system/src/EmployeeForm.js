@@ -1,35 +1,51 @@
+// src/components/EmployeeForm.js
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const EmployeeForm = ({ employees, setEmployees }) => {
-  const [newEmployee, setNewEmployee] = useState({ 
-    name: '', 
-    grossSalary: '', 
-    tinNumber: '', 
-    nssfNumber: '', 
+const EmployeeForm = ({ employees, setEmployees, loggedIn }) => {
+  const [newEmployee, setNewEmployee] = useState({
+    name: '',
+    grossSalary: '',
+    tinNumber: '',
+    nssfNumber: '',
     preferredPaymentMode: 'Bank',
     mobileNumber: '',
-    bankAccountNumber: ''
+    bankAccountNumber: '',
   });
+  const navigate = useNavigate();
+
   const addEmployee = async () => {
+    if (!loggedIn) {
+      alert('You need to be logged in to add an employee');
+      navigate('/login');
+      return;
+    }
+
     const response = await fetch('http://localhost:5000/employee', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(newEmployee),
+      credentials: 'include',
     });
-    const data = await response.json();
-    setEmployees([...employees, data]);
-    setNewEmployee({
-      name: '',
-      grossSalary: '',
-      tinNumber: '',
-      nssfNumber: '',
-      preferredPaymentMode: 'Bank',
-      mobileNumber: '',
-      bankAccountNumber: '',
-    });
+
+    if (response.ok) {
+      const data = await response.json();
+      setEmployees([...employees, data]);
+      setNewEmployee({
+        name: '',
+        grossSalary: '',
+        tinNumber: '',
+        nssfNumber: '',
+        preferredPaymentMode: 'Bank',
+        mobileNumber: '',
+        bankAccountNumber: '',
+      });
+      navigate('/employees'); // Redirect to employee list after adding an employee
+    } else {
+      alert('Failed to add employee');
+    }
   };
 
   return (
@@ -120,7 +136,6 @@ const EmployeeForm = ({ employees, setEmployees }) => {
         <div className='add-button'>
           <button onClick={addEmployee}>Add Employee</button>
         </div>
-
       </div>
     </div>
   );
