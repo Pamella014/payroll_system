@@ -15,11 +15,25 @@
       user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
     -->
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+
+    <link
+    rel="icon"
+    href="%PUBLIC_URL%/kaiadmin/assets/img/kaiadmin/favicon.ico"
+    type="image/x-icon"
+  />
+
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="%PUBLIC_URL%/kaiadmin/assets/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="%PUBLIC_URL%/kaiadmin/assets/css/plugins.min.css" />
+    <link rel="stylesheet" href="%PUBLIC_URL%/kaiadmin/assets/css/kaiadmin.min.css" />
+
+    <!-- CSS Just for demo purpose, don't include it in your project -->
+    <link rel="stylesheet" href="%PUBLIC_URL%/kaiadmin/assets/css/demo.css" />
     <!--
       Notice the use of %PUBLIC_URL% in the tags above.
       It will be replaced with the URL of the `public` folder during the build.
       Only files inside the `public` folder can be referenced from the HTML.
-
+      
       Unlike "/favicon.ico" or "favicon.ico", "%PUBLIC_URL%/favicon.ico" will
       work correctly both with client-side routing and a non-root public URL.
       Learn how to configure a non-root public URL by running `npm run build`.
@@ -30,22 +44,63 @@
         <link
             href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
             rel="stylesheet">
-    
+            
         <!-- Custom styles for this template-->
         <link href="%PUBLIC_URL%/css/sb-admin-2.min.css" rel="stylesheet">
   </head>
   <body id="page-top">
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
-    <!--
-      This HTML file is a template.
-      If you open it directly in the browser, you will see an empty page.
+    <!-- Fonts and icons -->
+    <script src="%PUBLIC_URL%/kaiadmin/assets/js/plugin/webfont/webfont.min.js"></script>
+    <script>
+      WebFont.load({
+        google: { families: ["Public Sans:300,400,500,600,700"] },
+        custom: {
+          families: [
+            "Font Awesome 5 Solid",
+            "Font Awesome 5 Regular",
+            "Font Awesome 5 Brands",
+            "simple-line-icons",
+          ],
+          urls: ["%PUBLIC_URL%/kaiadmin/assets/css/fonts.min.css"],
+        },
+        active: function () {
+          sessionStorage.fonts = true;
+        },
+      });
+    </script>
 
-      You can add webfonts, meta tags, or analytics to this file.
-      The build step will place the bundled scripts into the <body> tag.
+    <!--   Core JS Files   -->
+    <script src="%PUBLIC_URL%/kaiadmin/assets/js/core/jquery-3.7.1.min.js"></script>
+    <script src="%PUBLIC_URL%/kaiadmin/assets/js/core/popper.min.js"></script>
+    <script src="%PUBLIC_URL%/kaiadmin/assets/js/core/bootstrap.min.js"></script>
 
-      To begin the development, run `npm start` or `yarn start`.
-      To create a production bundle, use `npm run build` or `yarn build`.
-    -->
+     <!-- jQuery Scrollbar -->
+     <script src="%PUBLIC_URL%/kaiadmin/assets/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js"></script>
+
+      <!-- jQuery Sparkline -->
+    <script src="%PUBLIC_URL%/kaiadmin/assets/js/plugin/jquery.sparkline/jquery.sparkline.min.js"></script>
+
+    <!-- Chart Circle -->
+    <script src="%PUBLIC_URL%/kaiadmin/assets/js/plugin/chart-circle/circles.min.js"></script>
+
+    <!-- Datatables -->
+    <script src="%PUBLIC_URL%/kaiadmin/assets/js/plugin/datatables/datatables.min.js"></script>
+
+    <!-- Bootstrap Notify -->
+    <script src="%PUBLIC_URL%/kaiadmin/assets/js/plugin/bootstrap-notify/bootstrap-notify.min.js"></script>
+
+     <!-- Kaiadmin JS -->
+     <script src="%PUBLIC_URL%/kaiadmin/assets/js/kaiadmin.min.js"></script>
+
+     <!-- jQuery Vector Maps -->
+    <script src="%PUBLIC_URL%/kaiadmin/assets/js/plugin/jsvectormap/jsvectormap.min.js"></script>
+    <script src="%PUBLIC_URL%/kaiadmin/assets/js/plugin/jsvectormap/world.js"></script>
+
+    <!-- Sweet Alert -->
+    <script src="%PUBLIC_URL%/kaiadmin/assets/js/plugin/sweetalert/sweetalert.min.js"></script>
+
+
   </body>
 </html>

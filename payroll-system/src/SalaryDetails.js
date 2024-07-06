@@ -9,94 +9,53 @@ const SalaryDetails = () => {
   const [showReceipt, setShowReceipt] = useState(false);
   const [receiptData, setReceiptData] = useState([]);
 
-  const generateCSV = (data, filename, paymentMode) => {
-    let csvContent = [];
-
-    if (paymentMode === "Bank") {
-      csvContent = [
-        ["Name", "Gross Salary", "Net Salary", "PAYE", "NSSF", "Preferred Payment Mode", "Bank Account Number"],
-        ...data.map(emp => [
-          emp.name,
-          emp.grossSalary,
-          emp.netSalary,
-          emp.paye,
-          emp.nssf,
-          emp.preferredPaymentMode,
-          emp.bankAccountNumber,
-        ]),
-      ];
-    } else if (paymentMode === "Mobile Money") {
-      csvContent = [
-        ["Name", "Gross Salary", "Net Salary", "PAYE", "NSSF", "Preferred Payment Mode", "Mobile Number"],
-        ...data.map(emp => [
-          emp.name,
-          emp.grossSalary,
-          emp.netSalary,
-          emp.paye,
-          emp.nssf,
-          emp.preferredPaymentMode,
-          emp.mobileNumber,
-        ]),
-      ];
-    } else {
-      csvContent = [
-        ["Name", "Gross Salary", "Net Salary", "PAYE", "NSSF", "Preferred Payment Mode"],
-        ...data.map(emp => [
-          emp.name,
-          emp.grossSalary,
-          emp.netSalary,
-          emp.paye,
-          emp.nssf,
-          emp.preferredPaymentMode,
-        ]),
-      ];
-    }
+  const generateCSV = (data, filename, headers) => {
+    const csvContent = [
+      headers,
+      ...data.map(emp => headers.map(header => emp[header.toLowerCase().replace(' ', '')])),
+    ];
 
     const csvString = csvContent.map(e => e.join(",")).join("\n");
-
     const blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
     saveAs(blob, filename);
   };
 
   const handlePayments = () => {
-    const payments = {
-      Bank: [],
-      "Mobile Money": [],
-      Wallet: [],
-    };
+    const netSalaryData = salaryDetails.map(employee => ({
+      name: employee.name,
+      grossSalary: employee.grossSalary,
+      netSalary: employee.netSalary,
+      paye: employee.paye,
+      nssf: employee.nssf,
+      preferredPaymentMode: employee.preferredPaymentMode,
+    }));
 
-    salaryDetails.forEach(employee => {
-      payments[employee.preferredPaymentMode].push(employee);
-      alert(`Payment made to ${employee.name} of amount ${employee.netSalary}`);
-    });
+    const payeData = salaryDetails.map(employee => ({
+      name: employee.name,
+      paye: employee.paye,
+    }));
 
-    Object.keys(payments).forEach(method => {
-      if (payments[method].length > 0) {
-        generateCSV(payments[method], `${method.replace(' ', '_')}_payments.csv`, method);
-      }
-    });
+    const nssfData = salaryDetails.map(employee => ({
+      name: employee.name,
+      nssf: employee.nssf,
+    }));
 
+    generateCSV(netSalaryData, "Net_Salary_payments.csv", ["Name", "Net Salary"]);
+    generateCSV(payeData, "PAYE_payments.csv", ["Name", "PAYE"]);
+    generateCSV(nssfData, "NSSF_payments.csv", ["Name", "NSSF"]);
+
+    alert('Payment Successful');
     setReceiptData(salaryDetails);
     setSalaryDetails([]);
-    setShowReceipt(true); // Clear the salary details list
+    setShowReceipt(true);
   };
 
   return (
-    <div>
-      <div className="sidebar">
-        <ul>
-          <li className="active">Salary Details</li>
-        </ul>
-      </div>
-
-      <div className="header">
-        <h2>Salary Details</h2>
-      </div>
-
-      <div className="content">
-        {salaryDetails.length > 0 ? (
-          <div className="table-container">
-            <table>
+    <div className="card">
+      <div className="card-body">
+        <div className="content">
+          <div className="table-responsive">
+            <table className="table">
               <thead>
                 <tr>
                   <th>Name</th>
@@ -106,47 +65,31 @@ const SalaryDetails = () => {
                 </tr>
               </thead>
               <tbody>
-                {salaryDetails.map((employee, index) => (
-                  <tr key={index}>
-                    <td>{employee.name}</td>
-                    <td>{employee.netSalary}</td>
-                    <td>{employee.paye}</td>
-                    <td>{employee.nssf}</td>
+                {salaryDetails.length > 0 ? (
+                  salaryDetails.map((employee, index) => (
+                    <tr key={index}>
+                      <td>{employee.name}</td>
+                      <td>{employee.netSalary}</td>
+                      <td>{employee.paye}</td>
+                      <td>{employee.nssf}</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="4" style={{ textAlign: 'center' }}>No payroll to submit</td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
-            <div className='add-button'>
-              <button onClick={handlePayments}>Pay All Employees</button>
+          </div>
+          {salaryDetails.length > 0 && (
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+              <button onClick={handlePayments} className="btn btn-label-info btn-round me-2">
+                Pay All Employees
+              </button>
             </div>
-          </div>
-        ) : (
-          <div className="no-payroll">
-            <p>No payroll to submit</p>
-          </div>
-        )}
-        {showReceipt && (
-          <div className="receipt-container">
-            <h2>Payment Receipt</h2>
-            <div className="receipt-cards">
-              {receiptData.map((employee, index) => (
-                <div className="receipt-card" key={index}>
-                  <h3>{employee.name}</h3>
-                  <p><strong>Net Salary:</strong> {employee.netSalary}</p>
-                  <p><strong>PAYE:</strong> {employee.paye}</p>
-                  <p><strong>NSSF:</strong> {employee.nssf}</p>
-                  <p><strong>Preferred Payment Mode:</strong> {employee.preferredPaymentMode}</p>
-                  {employee.preferredPaymentMode === "Mobile Money" && (
-                    <p><strong>Mobile Number:</strong> {employee.mobileNumber}</p>
-                  )}
-                  {employee.preferredPaymentMode === "Bank" && (
-                    <p><strong>Bank Account Number:</strong> {employee.bankAccountNumber}</p>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );

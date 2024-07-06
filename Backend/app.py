@@ -12,6 +12,7 @@ CORS(app,supports_credentials=True)
 # Configuration
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
 app.config['SECRET_KEY'] = 'your_secret_key'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False 
 
 # Extensions
 db = SQLAlchemy(app)
@@ -28,6 +29,7 @@ class User(db.Model, UserMixin):
     username = db.Column(db.String(150), unique=True, nullable=False)
     email = db.Column(db.String(150), unique=True, nullable=False)
     password = db.Column(db.String(200), nullable=False)
+    employees = db.relationship('Employee', backref='registrant', lazy=True) 
 
     def __repr__(self):
         return f'<User {self.username}>'
@@ -46,6 +48,7 @@ class Employee(db.Model):
     preferred_payment_mode = db.Column(db.String(100), nullable=False)
     mobile_number = db.Column(db.String(100), nullable=True)
     bank_account_number = db.Column(db.String(100), nullable=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)  # Add this line 
 
     def __repr__(self):
         return (
@@ -85,7 +88,8 @@ def add_employee():
         nssf_number=data['nssfNumber'],
         preferred_payment_mode=data['preferredPaymentMode'],
         mobile_number=data.get('mobileNumber'),
-        bank_account_number=data.get('bankAccountNumber')
+        bank_account_number=data.get('bankAccountNumber'),
+        user_id=current_user.id 
     )
     db.session.add(new_employee)
     db.session.commit()
@@ -115,6 +119,13 @@ def login():
 def logout():
     logout_user()
     return jsonify({'message': 'Logged out successfully'})
+
+@app.route('/login-status', methods=['GET'])
+def login_status():
+    if current_user.is_authenticated:
+        return jsonify({'loggedIn': True})
+    else:
+        return jsonify({'loggedIn': False})
 
 if __name__ == '__main__':
     app.run()
