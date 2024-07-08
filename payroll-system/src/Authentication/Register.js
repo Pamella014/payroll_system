@@ -32,11 +32,11 @@ const Register = () => {
     <div class="container-scroller">
     <div class="container-fluid page-body-wrapper full-page-wrapper">
         <div class="row w-100 m-0">
-            <div class="content-wrapper full-page-wrapper d-flex align-items-center auth login-bg">
+            <div class="content-wrapper full-page-wrapper d-flex align-items-center auth login-bg" style={{ marginTop: '150px' }}>
                 <div class="card col-lg-4 mx-auto">
                     <div class="card-body px-5 py-5">
                         <h3 class="card-title text-left mb-3">Register</h3>
-                        <form>
+                        <form autoComplete="off" >
                             <div class="form-group">
                                 <label>Company Name</label>
                                 <input
@@ -55,6 +55,7 @@ const Register = () => {
                                     placeholder="Email"
                                     value={email}
                                     onChange={e => setEmail(e.target.value)}
+                                    autoComplete="new-email"
                                 />
                             </div>
                             <div class="form-group">
@@ -65,12 +66,13 @@ const Register = () => {
                                     placeholder="Password"
                                     value={password}
                                     onChange={e => setPassword(e.target.value)}
+                                    autoComplete="new-password"
                                 />
                             </div>
                             <div class="text-center">
                                 <button type="button" class="btn btn-primary btn-block enter-btn" onClick={handleRegister}>Register</button>
                             </div>
-                            <p class="sign-up text-center">Already have an Account?<a href="/login"> Sign Up</a></p>
+                            <p class="sign-up text-center">Already have an Account?<a href="/login"> Sign In</a></p>
                             <p class="terms">By creating an account you are accepting our<a href="#"> Terms & Conditions</a></p>
                         </form>
                     </div>
