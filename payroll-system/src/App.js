@@ -8,10 +8,12 @@ import Register from './Authentication/Register';
 import Sidebar from './Components/sideBar';
 import Footer from './Components/footer';
 import Header from './Components/header';
+import axios from 'axios';
 
 const App = () => {
   const [employees, setEmployees] = useState([]);
   const [loggedIn, setLoggedIn] = useState(false);
+  const [user, setUser] = useState({});
 
   useEffect(() => {
     const isLoggedIn = localStorage.getItem('loggedIn') === 'true';
@@ -21,11 +23,23 @@ const App = () => {
   const handleLogin = () => {
     setLoggedIn(true);
     localStorage.setItem('loggedIn', 'true');
+    axios.get('http://localhost:5000/login-status', { withCredentials: true })
+      .then(response => {
+        if (response.data.loggedIn) {
+          // console.log(response.dat)
+
+          setUser(response.data.user);
+        }
+      })
+      .catch(error => {
+        console.error(error);
+      });
   };
 
   const handleLogout = () => {
     setLoggedIn(false);
     localStorage.removeItem('loggedIn');
+    setUser({})
   };
 
   return (
@@ -40,7 +54,7 @@ const App = () => {
               <div className="wrapper">
                 <Sidebar />
                 <div className="main-panel">
-                  <Header setLoggedIn={handleLogout} />
+                  <Header setLoggedIn={handleLogout} user={user} />
                   <div className="container">
                     <div className="page-inner">
                       <Routes>

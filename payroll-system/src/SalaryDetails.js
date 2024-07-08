@@ -8,11 +8,11 @@ const SalaryDetails = () => {
   const [salaryDetails, setSalaryDetails] = useState(initialSalaryDetails);
   const [showReceipt, setShowReceipt] = useState(false);
   const [receiptData, setReceiptData] = useState([]);
-
+  
   const generateCSV = (data, filename, headers) => {
     const csvContent = [
       headers,
-      ...data.map(emp => headers.map(header => emp[header.toLowerCase().replace(' ', '')])),
+      ...data.map(emp => headers.map(header => emp[header.toLowerCase().replace(/ /g, '').replace('number', 'Number')])),
     ];
 
     const csvString = csvContent.map(e => e.join(",")).join("\n");
@@ -21,28 +21,29 @@ const SalaryDetails = () => {
   };
 
   const handlePayments = () => {
-    const netSalaryData = salaryDetails.map(employee => ({
-      name: employee.name,
-      grossSalary: employee.grossSalary,
-      netSalary: employee.netSalary,
-      paye: employee.paye,
-      nssf: employee.nssf,
-      preferredPaymentMode: employee.preferredPaymentMode,
-    }));
 
     const payeData = salaryDetails.map(employee => ({
       name: employee.name,
       paye: employee.paye,
+      tinNumber: employee.tinNumber,
     }));
 
     const nssfData = salaryDetails.map(employee => ({
       name: employee.name,
       nssf: employee.nssf,
+      nssfNumber: employee.nssfNumber,
     }));
 
-    generateCSV(netSalaryData, "Net_Salary_payments.csv", ["Name", "Net Salary"]);
-    generateCSV(payeData, "PAYE_payments.csv", ["Name", "PAYE"]);
-    generateCSV(nssfData, "NSSF_payments.csv", ["Name", "NSSF"]);
+    const netSalaryData = salaryDetails.map(employee => ({
+      name: employee.name,
+      netsalary: employee.netSalary,
+      preferredPaymentMode: employee.preferredPaymentMode,
+    }));
+
+
+    generateCSV(payeData, "PAYE_payments.csv", ["Name", "PAYE", "TIN Number"]);
+    generateCSV(nssfData, "NSSF_payments.csv", ["Name", "NSSF", "NSSF Number"]);
+    generateCSV(netSalaryData, "NetSalary_payments.csv", ["Name", "Net Salary", "Preferred Payment Mode"]);
 
     alert('Payment Successful');
     setReceiptData(salaryDetails);

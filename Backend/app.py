@@ -23,6 +23,11 @@ login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 login_manager.init_app(app)
 
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+
 # User model
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
@@ -33,10 +38,6 @@ class User(db.Model, UserMixin):
 
     def __repr__(self):
         return f'<User {self.username}>'
-
-@login_manager.user_loader
-def load_user(user_id):
-    return User.query.get(int(user_id))
 
 # Employee model
 class Employee(db.Model):
@@ -58,8 +59,7 @@ class Employee(db.Model):
             f"bank_account_number='{self.bank_account_number}')>"
         )
 
-    @property
-    def serialize(self):
+    def to_dict(self):
         return {
             'id': self.id,
             'name': self.name,
@@ -74,8 +74,8 @@ class Employee(db.Model):
 @app.route('/employees', methods=['GET'])
 @login_required
 def get_employees():
-    employees = Employee.query.all()
-    return jsonify([employee.serialize for employee in employees])
+    employees = Employee.query.filter_by(user_id=current_user.id).all()
+    return jsonify([employee.to_dict() for employee in employees])
 
 @app.route('/employee', methods=['POST'])
 @login_required
@@ -93,7 +93,7 @@ def add_employee():
     )
     db.session.add(new_employee)
     db.session.commit()
-    return jsonify(new_employee.serialize), 201
+    return jsonify(new_employee.to_dict()), 201
 
 @app.route('/register', methods=['POST'])
 def register():
@@ -122,9 +122,15 @@ def logout():
 
 @app.route('/login-status', methods=['GET'])
 def login_status():
-    if current_user.is_authenticated:
-        return jsonify({'loggedIn': True})
-    else:
+  if current_user.is_authenticated:
+        return jsonify({
+            'loggedIn': True,
+            'user': {
+                'username': current_user.username,
+                'email': current_user.email
+            }
+        })
+  else:
         return jsonify({'loggedIn': False})
 
 if __name__ == '__main__':

@@ -3,9 +3,9 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
-const Header = ({ setLoggedIn }) => {
+const Header = ({ setLoggedIn, user }) => {
   const navigate = useNavigate();
-
+// console.log(user)
   const handleLogout = () => {
     axios.get('http://localhost:5000/logout', { withCredentials: true })
       .then(response => {
@@ -309,7 +309,7 @@ const Header = ({ setLoggedIn }) => {
                 </div>
                 <span className="profile-username">
                   <span className="op-7">Hi,</span>
-                  <span className="fw-bold">Hizrian</span>
+                  <span className="fw-bold">{user.username}</span>
                 </span>
               </a>
               <ul className="dropdown-menu dropdown-user animated fadeIn">
@@ -317,11 +317,11 @@ const Header = ({ setLoggedIn }) => {
                   <li>
                     <div className="user-box">
                       <div className="avatar-lg">
-                        <img src="assets/img/profile.jpg" alt="image profile" className="avatar-img rounded" />
+                      <img src="kaiadmin/assets/img/profile.jpg" alt="..." className="avatar-img rounded-circle" />
                       </div>
                       <div className="u-text">
-                        <h4>Hizrian</h4>
-                        <p className="text-muted">hello@example.com</p>
+                        <h4>{user?.username || 'Guest'}</h4>
+                        <p className="text-muted">{user?.email || 'guest@example.com'}</p>
                         <a href="profile.html" className="btn btn-xs btn-secondary btn-sm">View Profile</a>
                       </div>
                     </div>
