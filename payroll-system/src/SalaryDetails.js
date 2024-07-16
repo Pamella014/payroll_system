@@ -101,31 +101,6 @@ const SalaryDetails = () => {
             </table>
           </div>
         </div>
-        <h3>Payment History</h3>
-        <div className="table-responsive">
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Employee</th>
-                <th>Payment Type</th>
-                <th>Amount</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {paymentHistory.map(payment => (
-                <tr key={payment.id}>
-                  <td>{new Date(payment.timestamp).toLocaleDateString()}</td>
-                  <td>{payment.employee.name}</td>
-                  <td>{payment.paymentType}</td>
-                  <td>{payment.amount}</td>
-                  <td>{payment.status}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
       </div>
     </div>
   );
