@@ -1,152 +1,131 @@
-import React, { useState } from 'react';
-import { useLocation } from 'react-router-dom';
-import { saveAs } from 'file-saver';
+import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 const SalaryDetails = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const initialSalaryDetails = location.state?.salaryDetails || [];
   const [salaryDetails, setSalaryDetails] = useState(initialSalaryDetails);
-  const [showReceipt, setShowReceipt] = useState(false);
-  const [receiptData, setReceiptData] = useState([]);
+  const [paymentStatus, setPaymentStatus] = useState({
+    netSalary: 'Pending',
+    paye: 'Pending',
+    nssf: 'Pending'
+  });
 
-  const generateCSV = (data, filename, paymentMode) => {
-    let csvContent = [];
+  const [paymentHistory, setPaymentHistory] = useState([]);
 
-    if (paymentMode === "Bank") {
-      csvContent = [
-        ["Name", "Gross Salary", "Net Salary", "PAYE", "NSSF", "Preferred Payment Mode", "Bank Account Number"],
-        ...data.map(emp => [
-          emp.name,
-          emp.grossSalary,
-          emp.netSalary,
-          emp.paye,
-          emp.nssf,
-          emp.preferredPaymentMode,
-          emp.bankAccountNumber,
-        ]),
-      ];
-    } else if (paymentMode === "Mobile Money") {
-      csvContent = [
-        ["Name", "Gross Salary", "Net Salary", "PAYE", "NSSF", "Preferred Payment Mode", "Mobile Number"],
-        ...data.map(emp => [
-          emp.name,
-          emp.grossSalary,
-          emp.netSalary,
-          emp.paye,
-          emp.nssf,
-          emp.preferredPaymentMode,
-          emp.mobileNumber,
-        ]),
-      ];
-    } else {
-      csvContent = [
-        ["Name", "Gross Salary", "Net Salary", "PAYE", "NSSF", "Preferred Payment Mode"],
-        ...data.map(emp => [
-          emp.name,
-          emp.grossSalary,
-          emp.netSalary,
-          emp.paye,
-          emp.nssf,
-          emp.preferredPaymentMode,
-        ]),
-      ];
+  useEffect(() => {
+    if (initialSalaryDetails.length > 0) {
+      fetchSalaryDetails(initialSalaryDetails[0].id);
     }
+    fetchPaymentHistory();
+  }, [initialSalaryDetails]);
 
-    const csvString = csvContent.map(e => e.join(",")).join("\n");
-
-    const blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
-    saveAs(blob, filename);
+  const fetchSalaryDetails = async (employeeId) => {
+    try {
+      const response = await axios.get(`/employee/${employeeId}/salary`);
+      const salaryData = response.data;
+      setSalaryDetails(salaryData);
+    } catch (error) {
+      console.error('Error fetching salary details:', error);
+    }
   };
 
-  const handlePayments = () => {
-    const payments = {
-      Bank: [],
-      "Mobile Money": [],
-      Wallet: [],
+  const fetchPaymentHistory = async () => {
+    try {
+      const response = await axios.get('/payments');
+      const payments = response.data;
+      setPaymentHistory(payments);
+      updatePaymentStatus(payments);
+    } catch (error) {
+      console.error('Error fetching payment history:', error);
+    }
+  };
+
+  const updatePaymentStatus = (payments) => {
+    const status = {
+      netSalary: 'Pending',
+      paye: 'Pending',
+      nssf: 'Pending'
     };
-
-    salaryDetails.forEach(employee => {
-      payments[employee.preferredPaymentMode].push(employee);
-      alert(`Payment made to ${employee.name} of amount ${employee.netSalary}`);
-    });
-
-    Object.keys(payments).forEach(method => {
-      if (payments[method].length > 0) {
-        generateCSV(payments[method], `${method.replace(' ', '_')}_payments.csv`, method);
+    payments.forEach(payment => {
+      if (payment.status === 'Completed') {
+        status[payment.paymentType] = 'Completed';
       }
     });
-
-    setReceiptData(salaryDetails);
-    setSalaryDetails([]);
-    setShowReceipt(true); // Clear the salary details list
+    setPaymentStatus(status);
   };
 
+  const handleView = (type) => {
+    navigate(`/${type}-breakdown`, { state: { salaryDetails } });
+  };
+
+
   return (
-    <div>
-      <div className="sidebar">
-        <ul>
-          <li className="active">Salary Details</li>
-        </ul>
-      </div>
-
-      <div className="header">
-        <h2>Salary Details</h2>
-      </div>
-
-      <div className="content">
-        {salaryDetails.length > 0 ? (
-          <div className="table-container">
-            <table>
+    <div className="card">
+      <div className="card-body">
+        <div className="content">
+          <div className="table-responsive">
+            <table className="table">
               <thead>
-                <tr>
-                  <th>Name</th>
+              <tr>
+                  <th>Date</th>
+                  <th>Time</th>
                   <th>Net Salary</th>
+                  <th>Status</th>
                   <th>PAYE</th>
+                  <th>Status</th>
                   <th>NSSF</th>
+                  <th>Status</th>
                 </tr>
               </thead>
               <tbody>
-                {salaryDetails.map((employee, index) => (
-                  <tr key={index}>
-                    <td>{employee.name}</td>
-                    <td>{employee.netSalary}</td>
-                    <td>{employee.paye}</td>
-                    <td>{employee.nssf}</td>
-                  </tr>
-                ))}
+                    <tr >
+                      <td>{new Date().toLocaleDateString()}</td>
+                      <td>{new Date().toLocaleTimeString()}</td>
+                      <td>
+                        <button  className="btn btn-primary btn-round ms-auto" onClick={() => handleView('net-salary')} >View</button>
+                      </td>
+                      <td>{paymentStatus.netSalary}</td>
+                      <td>
+                        <button onClick={() => handleView('paye')}  className="btn btn-primary btn-round ms-auto">View</button>
+                      </td>
+                      <td>{paymentStatus.paye}</td>
+                      <td>
+                        <button onClick={() => handleView('nssf')}  className="btn btn-primary btn-round ms-auto">View</button>
+                      </td>
+                      <td>{paymentStatus.nssf}</td>
+                    </tr>
               </tbody>
             </table>
-            <div className='add-button'>
-              <button onClick={handlePayments}>Pay All Employees</button>
-            </div>
           </div>
-        ) : (
-          <div className="no-payroll">
-            <p>No payroll to submit</p>
-          </div>
-        )}
-        {showReceipt && (
-          <div className="receipt-container">
-            <h2>Payment Receipt</h2>
-            <div className="receipt-cards">
-              {receiptData.map((employee, index) => (
-                <div className="receipt-card" key={index}>
-                  <h3>{employee.name}</h3>
-                  <p><strong>Net Salary:</strong> {employee.netSalary}</p>
-                  <p><strong>PAYE:</strong> {employee.paye}</p>
-                  <p><strong>NSSF:</strong> {employee.nssf}</p>
-                  <p><strong>Preferred Payment Mode:</strong> {employee.preferredPaymentMode}</p>
-                  {employee.preferredPaymentMode === "Mobile Money" && (
-                    <p><strong>Mobile Number:</strong> {employee.mobileNumber}</p>
-                  )}
-                  {employee.preferredPaymentMode === "Bank" && (
-                    <p><strong>Bank Account Number:</strong> {employee.bankAccountNumber}</p>
-                  )}
-                </div>
+        </div>
+        <h3>Payment History</h3>
+        <div className="table-responsive">
+          <table className="table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Employee</th>
+                <th>Payment Type</th>
+                <th>Amount</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {paymentHistory.map(payment => (
+                <tr key={payment.id}>
+                  <td>{new Date(payment.timestamp).toLocaleDateString()}</td>
+                  <td>{payment.employee.name}</td>
+                  <td>{payment.paymentType}</td>
+                  <td>{payment.amount}</td>
+                  <td>{payment.status}</td>
+                </tr>
               ))}
-            </div>
-          </div>
-        )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

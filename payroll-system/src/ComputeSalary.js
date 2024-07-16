@@ -12,8 +12,9 @@ const computeSalary = (grossSalary) => {
       paye = ((grossSalary - 410000) * 0.3) + 25000 + ((grossSalary - 10000000) * 0.1);
     }
     const nssf = grossSalary * 0.05;
+    const employerNssf = grossSalary * 0.1;
     const netSalary = grossSalary - paye - nssf;
-    return { paye, nssf, netSalary };
+    return { paye, nssf, netSalary, employerNssf };
   };
   
   export default computeSalary;
