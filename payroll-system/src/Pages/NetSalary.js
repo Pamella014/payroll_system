@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { saveAs } from 'file-saver';
 
-
 const NetSalaryBreakdown = () => {
   const location = useLocation();
   const initialSalaryDetails = location.state?.salaryDetails || [];
@@ -30,6 +29,7 @@ const NetSalaryBreakdown = () => {
     alert('Payment Successful');
     setSalaryDetails([]);
   };
+
   return (
     <div className="card">
       <div className="card-body">

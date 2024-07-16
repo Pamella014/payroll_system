@@ -4,7 +4,7 @@ import computeSalary from './ComputeSalary';// Ensure you have this utility func
 
 const EmployeeList = ({ employees, setEmployees }) => {
   const navigate = useNavigate();
-  
+
   useEffect(() => {
     const fetchEmployees = async () => {
       try {
@@ -20,12 +20,19 @@ const EmployeeList = ({ employees, setEmployees }) => {
     fetchEmployees();
   }, [setEmployees]);
 
-
-  const calculateSalaries = () => {
-    const details = employees.map(employee => {
-      const { paye, nssf, netSalary, employerNssf } = computeSalary(parseFloat(employee.grossSalary));
-      return { ...employee, paye, nssf, netSalary,employerNssf };
-    });
+  const calculateSalaries = async () => {
+    const details = [];
+    for (const employee of employees) {
+      try {
+        const response = await fetch(`http://localhost:5000/employee/${employee.id}/salary`, {
+          credentials: 'include',  // Ensure cookies are sent
+        });
+        const data = await response.json();
+        details.push(data);
+      } catch (error) {
+        console.error('Error fetching salary details:', error);
+      }
+    }
     navigate('/salary-details', { state: { salaryDetails: details } });
   };
 

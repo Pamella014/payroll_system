@@ -4,6 +4,7 @@ from flask_migrate import Migrate
 from flask_cors import CORS
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
+from datetime import datetime
 
 app = Flask(__name__)
 app.debug = True
@@ -28,6 +29,31 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 
+# Payment model
+class Payment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    employee_id = db.Column(db.Integer, db.ForeignKey('employee.id'), nullable=False)
+    payment_type = db.Column(db.String(50), nullable=False)  # net_salary, paye, nssf
+    amount = db.Column(db.Float, nullable=False)
+    status = db.Column(db.String(50), default='Pending')  # Pending, Completed
+    timestamp = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f"<Payment(id={self.id}, employee_id={self.employee_id}, payment_type={self.payment_type}, amount={self.amount}, status={self.status})>"
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'employee_id': self.employee_id,
+            'payment_type': self.payment_type,
+            'amount': self.amount,
+            'status': self.status,
+            'timestamp': self.timestamp,
+            'employee': {
+                'name': self.employee.name
+            }
+        }
+
 # User model
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
@@ -50,26 +76,53 @@ class Employee(db.Model):
     mobile_number = db.Column(db.String(100), nullable=True)
     bank_account_number = db.Column(db.String(100), nullable=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)  # Add this line 
+    payments = db.relationship('Payment', backref='employee', lazy=True)
 
-    def __repr__(self):
-        return (
-            f"<Employee(id={self.id}, name='{self.name}', gross_salary={self.gross_salary}, "
-            f"tin_number='{self.tin_number}', nssf_number='{self.nssf_number}', "
-            f"preferred_payment_mode='{self.preferred_payment_mode}', mobile_number='{self.mobile_number}', "
-            f"bank_account_number='{self.bank_account_number}')>"
-        )
+    @property
+    def net_salary(self):
+            return self.calculate_salaries()['net_salary']
+
+    @property
+    def paye(self):
+            return self.calculate_salaries()['paye']
+
+    @property
+    def nssf(self):
+            return self.calculate_salaries()['nssf']
+
+    def calculate_salaries(self):
+        gross_salary = self.gross_salary
+        if gross_salary <= 235000:
+                paye = 0
+        elif gross_salary <= 335000:
+                paye = (gross_salary - 235000) * 0.1
+        elif gross_salary <= 410000:
+                paye = ((gross_salary - 335000) * 0.2) + 10000
+        elif gross_salary <= 10000000:
+                paye = ((gross_salary - 410000) * 0.3) + 25000
+        else:
+                paye = ((gross_salary - 410000) * 0.3) + 25000 + ((gross_salary - 10000000) * 0.1)
+            
+        nssf = gross_salary * 0.05
+        employer_nssf = gross_salary * 0.1
+        net_salary = gross_salary - paye - nssf
+
+        return {'paye': paye, 'nssf': nssf, 'net_salary': net_salary, 'employer_nssf': employer_nssf}
 
     def to_dict(self):
-        return {
-            'id': self.id,
-            'name': self.name,
-            'grossSalary': self.gross_salary,
-            'tinNumber': self.tin_number,
-            'nssfNumber': self.nssf_number,
-            'preferredPaymentMode': self.preferred_payment_mode,
-            'mobileNumber': self.mobile_number,
-            'bankAccountNumber': self.bank_account_number
-        }
+            return {
+                'id': self.id,
+                'name': self.name,
+                'grossSalary': self.gross_salary,
+                'tinNumber': self.tin_number,
+                'nssfNumber': self.nssf_number,
+                'preferredPaymentMode': self.preferred_payment_mode,
+                'mobileNumber': self.mobile_number,
+                'bankAccountNumber': self.bank_account_number,
+                'netSalary': self.net_salary,
+                'paye': self.paye,
+                'nssf': self.nssf,
+            }
 
 @app.route('/employees', methods=['GET'])
 @login_required
@@ -132,6 +185,39 @@ def login_status():
         })
   else:
         return jsonify({'loggedIn': False})
+  
+
+
+@app.route('/employee/<int:id>/salary', methods=['GET'])
+@login_required
+def get_employee_salary(id):
+    employee = Employee.query.get_or_404(id)
+    if employee.user_id != current_user.id:
+        return jsonify({'message': 'Unauthorized access'}), 403
+
+    return jsonify(employee.to_dict())
+
+
+@app.route('/payments', methods=['POST'])
+@login_required
+def add_payment():
+    data = request.get_json()
+    new_payment = Payment(
+        employee_id=data['employeeId'],
+        payment_type=data['paymentType'],
+        amount=data['amount'],
+        status='Completed' if data['amount'] > 0 else 'Pending'
+    )
+    db.session.add(new_payment)
+    db.session.commit()
+    return jsonify(new_payment.to_dict()), 201
+
+
+@app.route('/payments', methods=['GET'])
+@login_required
+def get_payments():
+    payments = Payment.query.join(Employee).filter(Employee.user_id == current_user.id).all()
+    return jsonify([payment.to_dict() for payment in payments])
 
 if __name__ == '__main__':
     app.run()
