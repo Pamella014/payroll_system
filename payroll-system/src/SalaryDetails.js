@@ -1,55 +1,22 @@
 import React, { useState } from 'react';
-import { useLocation } from 'react-router-dom';
-import { saveAs } from 'file-saver';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const SalaryDetails = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const initialSalaryDetails = location.state?.salaryDetails || [];
   const [salaryDetails, setSalaryDetails] = useState(initialSalaryDetails);
-  const [showReceipt, setShowReceipt] = useState(false);
-  const [receiptData, setReceiptData] = useState([]);
-  
-  const generateCSV = (data, filename, headers) => {
-    const csvContent = [
-      headers,
-      ...data.map(emp => headers.map(header => emp[header.toLowerCase().replace(/ /g, '').replace('number', 'Number')])),
-    ];
 
-    const csvString = csvContent.map(e => e.join(",")).join("\n");
-    const blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
-    saveAs(blob, filename);
+  const [paymentStatus, setPaymentStatus] = useState({
+    netSalary: 'Pending',
+    paye: 'Pending',
+    nssf: 'Pending'
+  });
+
+  const handleView = (type) => {
+    navigate(`/${type}-breakdown`, { state: { salaryDetails} });
   };
 
-  const handlePayments = () => {
-
-    const payeData = salaryDetails.map(employee => ({
-      name: employee.name,
-      paye: employee.paye,
-      tinNumber: employee.tinNumber,
-    }));
-
-    const nssfData = salaryDetails.map(employee => ({
-      name: employee.name,
-      nssf: employee.nssf,
-      nssfNumber: employee.nssfNumber,
-    }));
-
-    const netSalaryData = salaryDetails.map(employee => ({
-      name: employee.name,
-      netsalary: employee.netSalary,
-      preferredPaymentMode: employee.preferredPaymentMode,
-    }));
-
-
-    generateCSV(payeData, "PAYE_payments.csv", ["Name", "PAYE", "TIN Number"]);
-    generateCSV(nssfData, "NSSF_payments.csv", ["Name", "NSSF", "NSSF Number"]);
-    generateCSV(netSalaryData, "NetSalary_payments.csv", ["Name", "Net Salary", "Preferred Payment Mode"]);
-
-    alert('Payment Successful');
-    setReceiptData(salaryDetails);
-    setSalaryDetails([]);
-    setShowReceipt(true);
-  };
 
   return (
     <div className="card">
@@ -58,38 +25,37 @@ const SalaryDetails = () => {
           <div className="table-responsive">
             <table className="table">
               <thead>
-                <tr>
-                  <th>Name</th>
+              <tr>
+                  <th>Date</th>
+                  <th>Time</th>
                   <th>Net Salary</th>
+                  <th>Status</th>
                   <th>PAYE</th>
+                  <th>Status</th>
                   <th>NSSF</th>
+                  <th>Status</th>
                 </tr>
               </thead>
               <tbody>
-                {salaryDetails.length > 0 ? (
-                  salaryDetails.map((employee, index) => (
-                    <tr key={index}>
-                      <td>{employee.name}</td>
-                      <td>{employee.netSalary}</td>
-                      <td>{employee.paye}</td>
-                      <td>{employee.nssf}</td>
+                    <tr >
+                      <td>{new Date().toLocaleDateString()}</td>
+                      <td>{new Date().toLocaleTimeString()}</td>
+                      <td>
+                        <button  className="btn btn-primary btn-round ms-auto" onClick={() => handleView('net-salary')} >View</button>
+                      </td>
+                      <td>{paymentStatus.netSalary}</td>
+                      <td>
+                        <button onClick={() => handleView('paye')}  className="btn btn-primary btn-round ms-auto">View</button>
+                      </td>
+                      <td>{paymentStatus.paye}</td>
+                      <td>
+                        <button onClick={() => handleView('nssf')}  className="btn btn-primary btn-round ms-auto">View</button>
+                      </td>
+                      <td>{paymentStatus.nssf}</td>
                     </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan="4" style={{ textAlign: 'center' }}>No payroll to submit</td>
-                  </tr>
-                )}
               </tbody>
             </table>
           </div>
-          {salaryDetails.length > 0 && (
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-              <button onClick={handlePayments} className="btn btn-label-info btn-round me-2">
-                Pay All Employees
-              </button>
-            </div>
-          )}
         </div>
       </div>
     </div>

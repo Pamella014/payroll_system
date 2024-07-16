@@ -8,6 +8,9 @@ import Register from './Authentication/Register';
 import Sidebar from './Components/sideBar';
 import Footer from './Components/footer';
 import Header from './Components/header';
+import NetSalaryBreakdown from './Pages/NetSalary';
+import NSSFBreakdown from './Pages/Nssf';
+import PAYEBreakdown from './Pages/Paye';
 import axios from 'axios';
 
 const App = () => {
@@ -61,6 +64,9 @@ const App = () => {
                         <Route path="/" element={<EmployeeForm employees={employees} setEmployees={setEmployees} />} />
                         <Route path="/employees" element={<EmployeeList employees={employees} setEmployees={setEmployees} />} />
                         <Route path="/salary-details" element={<SalaryDetails />} />
+                        <Route path="/net-salary-breakdown" element={<NetSalaryBreakdown />} />
+                        <Route path="/paye-breakdown" element={<PAYEBreakdown />} />
+                        <Route path="/nssf-breakdown" element={<NSSFBreakdown />} />
                       </Routes>
                     </div>
                   </div>

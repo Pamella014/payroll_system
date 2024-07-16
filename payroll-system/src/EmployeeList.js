@@ -23,8 +23,8 @@ const EmployeeList = ({ employees, setEmployees }) => {
 
   const calculateSalaries = () => {
     const details = employees.map(employee => {
-      const { paye, nssf, netSalary } = computeSalary(parseFloat(employee.grossSalary));
-      return { ...employee, paye, nssf, netSalary };
+      const { paye, nssf, netSalary, employerNssf } = computeSalary(parseFloat(employee.grossSalary));
+      return { ...employee, paye, nssf, netSalary,employerNssf };
     });
     navigate('/salary-details', { state: { salaryDetails: details } });
   };
