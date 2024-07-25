@@ -5,15 +5,16 @@ from flask_cors import CORS
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from datetime import datetime
+import logging
 
 app = Flask(__name__)
 app.debug = True
-CORS(app,supports_credentials=True)
+CORS(app, supports_credentials=True)
 
 # Configuration
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
 app.config['SECRET_KEY'] = 'your_secret_key'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False 
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Extensions
 db = SQLAlchemy(app)
@@ -28,39 +29,14 @@ login_manager.init_app(app)
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-
-# Payment model
-class Payment(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    employee_id = db.Column(db.Integer, db.ForeignKey('employee.id'), nullable=False)
-    payment_type = db.Column(db.String(50), nullable=False)  # net_salary, paye, nssf
-    amount = db.Column(db.Float, nullable=False)
-    status = db.Column(db.String(50), default='Pending')  # Pending, Completed
-    timestamp = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-
-    def __repr__(self):
-        return f"<Payment(id={self.id}, employee_id={self.employee_id}, payment_type={self.payment_type}, amount={self.amount}, status={self.status})>"
-
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'employee_id': self.employee_id,
-            'payment_type': self.payment_type,
-            'amount': self.amount,
-            'status': self.status,
-            'timestamp': self.timestamp,
-            'employee': {
-                'name': self.employee.name
-            }
-        }
-
 # User model
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
     email = db.Column(db.String(150), unique=True, nullable=False)
     password = db.Column(db.String(200), nullable=False)
-    employees = db.relationship('Employee', backref='registrant', lazy=True) 
+    employees = db.relationship('Employee', backref='registrant', lazy=True)
+    payrolls = db.relationship('Payroll', backref='user', lazy=True)
 
     def __repr__(self):
         return f'<User {self.username}>'
@@ -75,34 +51,33 @@ class Employee(db.Model):
     preferred_payment_mode = db.Column(db.String(100), nullable=False)
     mobile_number = db.Column(db.String(100), nullable=True)
     bank_account_number = db.Column(db.String(100), nullable=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)  # Add this line 
-    payments = db.relationship('Payment', backref='employee', lazy=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
     @property
     def net_salary(self):
-            return self.calculate_salaries()['net_salary']
+        return self.calculate_salaries()['net_salary']
 
     @property
     def paye(self):
-            return self.calculate_salaries()['paye']
+        return self.calculate_salaries()['paye']
 
     @property
     def nssf(self):
-            return self.calculate_salaries()['nssf']
+        return self.calculate_salaries()['nssf']
 
     def calculate_salaries(self):
         gross_salary = self.gross_salary
         if gross_salary <= 235000:
-                paye = 0
+            paye = 0
         elif gross_salary <= 335000:
-                paye = (gross_salary - 235000) * 0.1
+            paye = (gross_salary - 235000) * 0.1
         elif gross_salary <= 410000:
-                paye = ((gross_salary - 335000) * 0.2) + 10000
+            paye = ((gross_salary - 335000) * 0.2) + 10000
         elif gross_salary <= 10000000:
-                paye = ((gross_salary - 410000) * 0.3) + 25000
+            paye = ((gross_salary - 410000) * 0.3) + 25000
         else:
-                paye = ((gross_salary - 410000) * 0.3) + 25000 + ((gross_salary - 10000000) * 0.1)
-            
+            paye = ((gross_salary - 410000) * 0.3) + 25000 + ((gross_salary - 10000000) * 0.1)
+
         nssf = gross_salary * 0.05
         employer_nssf = gross_salary * 0.1
         net_salary = gross_salary - paye - nssf
@@ -110,19 +85,67 @@ class Employee(db.Model):
         return {'paye': paye, 'nssf': nssf, 'net_salary': net_salary, 'employer_nssf': employer_nssf}
 
     def to_dict(self):
-            return {
-                'id': self.id,
-                'name': self.name,
-                'grossSalary': self.gross_salary,
-                'tinNumber': self.tin_number,
-                'nssfNumber': self.nssf_number,
-                'preferredPaymentMode': self.preferred_payment_mode,
-                'mobileNumber': self.mobile_number,
-                'bankAccountNumber': self.bank_account_number,
-                'netSalary': self.net_salary,
-                'paye': self.paye,
-                'nssf': self.nssf,
-            }
+        return {
+            'id': self.id,
+            'name': self.name,
+            'grossSalary': self.gross_salary,
+            'tinNumber': self.tin_number,
+            'nssfNumber': self.nssf_number,
+            'preferredPaymentMode': self.preferred_payment_mode,
+            'mobileNumber': self.mobile_number,
+            'bankAccountNumber': self.bank_account_number,
+            'netSalary': self.net_salary,
+            'paye': self.paye,
+            'nssf': self.nssf
+        }
+
+# Payroll model
+class Payroll(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    month = db.Column(db.Integer, nullable=False)
+    year = db.Column(db.Integer, nullable=False)
+    net_salary_status = db.Column(db.String(20), default='pending')
+    paye_status = db.Column(db.String(20), default='pending')
+    nssf_status = db.Column(db.String(20), default='pending')
+    calculations = db.relationship('PayrollCalculation', backref='payroll', lazy=True)
+
+    def __repr__(self):
+        return f'<Payroll {self.year}-{self.month}>'
+
+    def update_status(self, status_type, status_value):
+        if status_type == 'net_salary':
+            self.net_salary_status = status_value
+        elif status_type == 'paye':
+            self.paye_status = status_value
+        elif status_type == 'nssf':
+            self.nssf_status = status_value
+        db.session.commit()
+
+# PayrollCalculation model
+class PayrollCalculation(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    payroll_id = db.Column(db.Integer, db.ForeignKey('payroll.id'), nullable=False)
+    employee_id = db.Column(db.Integer, db.ForeignKey('employee.id'), nullable=False)
+    gross_salary = db.Column(db.Float, nullable=False)
+    nssf = db.Column(db.Float, nullable=False)
+    employer_nssf = db.Column(db.Float, nullable=False)  # Add this line
+    paye = db.Column(db.Float, nullable=False)
+    net_salary = db.Column(db.Float, nullable=False)
+    
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'payroll_id': self.payroll_id,
+            'employee_id': self.employee_id,
+            'gross_salary': self.gross_salary,
+            'nssf': self.nssf,
+            'employer_nssf': self.employer_nssf,  # Add this line
+            'paye': self.paye,
+            'net_salary': self.net_salary,
+            
+        }
 
 @app.route('/employees', methods=['GET'])
 @login_required
@@ -142,7 +165,7 @@ def add_employee():
         preferred_payment_mode=data['preferredPaymentMode'],
         mobile_number=data.get('mobileNumber'),
         bank_account_number=data.get('bankAccountNumber'),
-        user_id=current_user.id 
+        user_id=current_user.id
     )
     db.session.add(new_employee)
     db.session.commit()
@@ -157,7 +180,6 @@ def register():
     db.session.commit()
     return jsonify({'message': 'User registered successfully'}), 201
 
-# app.py
 @app.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
@@ -185,8 +207,6 @@ def login_status():
         })
   else:
         return jsonify({'loggedIn': False})
-  
-
 
 @app.route('/employee/<int:id>/salary', methods=['GET'])
 @login_required
@@ -197,27 +217,149 @@ def get_employee_salary(id):
 
     return jsonify(employee.to_dict())
 
-
-@app.route('/payments', methods=['POST'])
+@app.route('/create-payroll', methods=['POST'])
 @login_required
-def add_payment():
+def create_payroll():
     data = request.get_json()
-    new_payment = Payment(
-        employee_id=data['employeeId'],
-        payment_type=data['paymentType'],
-        amount=data['amount'],
-        status='Completed' if data['amount'] > 0 else 'Pending'
+    new_payroll = Payroll(
+        user_id=current_user.id,
+        month=data['month'],
+        year=data['year']
     )
-    db.session.add(new_payment)
+    db.session.add(new_payroll)
     db.session.commit()
-    return jsonify(new_payment.to_dict()), 201
+    return jsonify({'message': 'Payroll created successfully', 'payroll_id': new_payroll.id}), 201
 
-
-@app.route('/payments', methods=['GET'])
+@app.route('/calculate-salaries', methods=['POST'])
 @login_required
-def get_payments():
-    payments = Payment.query.join(Employee).filter(Employee.user_id == current_user.id).all()
-    return jsonify([payment.to_dict() for payment in payments])
+def calculate_salaries():
+    data = request.get_json()
+    payroll_id = data['payroll_id']
+    payroll = Payroll.query.get_or_404(payroll_id)
+    
+    if payroll.user_id != current_user.id:
+        return jsonify({'message': 'Unauthorized access'}), 403
+
+    employees = Employee.query.filter_by(user_id=current_user.id).all()
+    salary_details = []
+
+
+    for employee in employees:
+        salaries = employee.calculate_salaries()
+        new_calculation = PayrollCalculation(
+            payroll_id=payroll_id,
+            employee_id=employee.id,
+            gross_salary=employee.gross_salary,
+            nssf=salaries['nssf'],
+            employer_nssf=salaries['employer_nssf'],  # Add this line
+            paye=salaries['paye'],
+            net_salary=salaries['net_salary']
+        )
+        db.session.add(new_calculation)
+        salary_details.append({
+            'employee_id': employee.id,
+            'gross_salary': employee.gross_salary,
+            'nssf': salaries['nssf'],
+            'employer_nssf': salaries['employer_nssf'],  # Add this line
+            'paye': salaries['paye'],
+            'net_salary': salaries['net_salary']
+        })
+        print(f"Saved salary for employee {employee.id}")  # Add this line for debugging
+
+    db.session.commit()
+    print("All salaries calculated and saved successfully")  # Add this line for debugging
+    return jsonify({'message': 'Salaries calculated and saved successfully', 'data': salary_details}), 200
+
+@app.route('/update-status', methods=['POST'])
+@login_required
+def update_status():
+    data = request.get_json()
+    payroll_id = data['payroll_id']
+    status_type = data['status_type']
+    status_value = data['status_value']
+    
+    payroll = Payroll.query.get_or_404(payroll_id)
+    
+    if payroll.user_id != current_user.id:
+        return jsonify({'message': 'Unauthorized access'}), 403
+    
+    payroll.update_status(status_type, status_value)
+    return jsonify({'message': 'Status updated successfully'}), 200
+
+
+@app.route('/make-payment', methods=['POST'])
+@login_required
+def make_payment():
+    data = request.get_json()
+    logging.info(f'Received payload: {data}')
+    payment_type = data.get('type')
+    payroll_id = data.get('payroll_id')
+    if not payment_type or not payroll_id:
+        return jsonify({'success': False, 'message': 'Payment type and payroll ID are required'}), 400
+
+    try:
+        payroll = Payroll.query.filter_by(id=payroll_id, user_id=current_user.id).first()
+        if not payroll:
+            return jsonify({'success': False, 'message': 'Payroll not found'}), 404
+        
+        if payment_type == 'netSalary':
+            payroll.net_salary_status = 'Completed'
+        elif payment_type == 'paye':
+            payroll.paye_status = 'Completed'
+        elif payment_type == 'nssf':
+            payroll.nssf_status = 'Completed'
+        else:
+            return jsonify({'success': False, 'message': 'Invalid payment type'}), 400
+
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Payment completed successfully', 'status': {
+            'netSalary': payroll.net_salary_status,
+            'paye': payroll.paye_status,
+            'nssf': payroll.nssf_status
+        }})
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f'Error processing payment: {e}')  
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/payroll/<int:payroll_id>/calculations', methods=['GET'])
+@login_required
+def get_payroll_calculations(payroll_id):
+    payroll = Payroll.query.get_or_404(payroll_id)
+    if payroll.user_id != current_user.id:
+        return jsonify({'message': 'Unauthorized access'}), 403
+
+    calculations = PayrollCalculation.query.filter_by(payroll_id=payroll_id).all()
+    salary_details = []
+
+    for calculation in calculations:
+        employee = Employee.query.get(calculation.employee_id)
+        salary_details.append({
+            'employee_id': calculation.employee_id,
+            'gross_salary': calculation.gross_salary,
+            'net_salary': calculation.net_salary,
+            'nssf': calculation.nssf,
+            'employer_nssf': calculation.employer_nssf,  # Add this line
+            'paye': calculation.paye,
+            'payroll_id': calculation.payroll_id,
+            'employee_name': employee.name,
+            'tin_number': employee.tin_number,
+            'nssf_number': employee.nssf_number,
+            'preferred_payment_mode': employee.preferred_payment_mode,
+            'mobile_number': employee.mobile_number,
+            'bank_account_number': employee.bank_account_number,
+        })
+
+    return jsonify({
+        'salary_details': salary_details,
+        'payment_status': {
+            'net_salary_status': payroll.net_salary_status,
+            'paye_status': payroll.paye_status,
+            'nssf_status': payroll.nssf_status
+        }
+    })
+
+
 
 if __name__ == '__main__':
     app.run()

@@ -1,13 +1,33 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import { useLocation} from 'react-router-dom';
 import { saveAs } from 'file-saver';
+import axios from 'axios';
 
 const PAYEBreakdown = () => {
   const location = useLocation();
+  const query = new URLSearchParams(location.search);
+  const payrollId = query.get('payrollId');
   const initialSalaryDetails = location.state?.salaryDetails || [];
   const [salaryDetails, setSalaryDetails] = useState(initialSalaryDetails);
-  const setPaymentStatus = location.state?.setPaymentStatus;
+  
+  useEffect(() => {
+    if (payrollId && initialSalaryDetails.length === 0) {
+      fetchSalaryDetails(payrollId);
+    }
+  }, [payrollId]);
 
+  const fetchSalaryDetails = async (payrollId) => {
+    try {
+      const response = await axios.get(`http://localhost:5000/payroll/${payrollId}/calculations`, {
+        withCredentials: true
+      });
+      const data = response.data;
+      const salary_details =data.salary_details;
+      setSalaryDetails(salary_details);
+    } catch (error) {
+      console.error('Error fetching salary details:', error);
+    }
+  };
  
   const generateCSV = (data, filename, headers) => {
     const csvContent = [
@@ -22,15 +42,14 @@ const PAYEBreakdown = () => {
 
   const handlePayAll = () => {
     const payeData = salaryDetails.map(employee => ({
-      name: employee.name,
+      name: employee.employee_name,
       paye: employee.paye,
-      tinNumber: employee.tinNumber,
+      tinNumber: employee.tin_number,
     }));
 
     generateCSV(payeData, "PAYE_payments.csv", ["Name", "PAYE", "TIN Number"]);
     alert('Payment Successful');
     setSalaryDetails([]);
-    // setPaymentStatus(prevStatus => ({ ...prevStatus, paye: 'Complete' }));
   };
 
   return (
@@ -50,9 +69,9 @@ const PAYEBreakdown = () => {
               {salaryDetails.length > 0 ? (
                 salaryDetails.map((employee, index) => (
                   <tr key={index}>
-                    <td>{employee.name}</td>
+                    <td>{employee.employee_name}</td>
                     <td>{employee.paye}</td>
-                    <td>{employee.tinNumber}</td>
+                    <td>{employee.tin_number}</td>
                   </tr>
                 ))
               ) : (

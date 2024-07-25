@@ -1,12 +1,34 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { saveAs } from 'file-saver';
+import axios from 'axios';
 
 const NSSFBreakdown = () => {
   const location = useLocation();
+  const query = new URLSearchParams(location.search);
+  const payrollId = query.get('payrollId');
   const initialSalaryDetails = location.state?.salaryDetails || [];
   const [salaryDetails, setSalaryDetails] = useState(initialSalaryDetails);
-  const setPaymentStatus = location.state?.setPaymentStatus;
+
+
+  useEffect(() => {
+    if (payrollId && initialSalaryDetails.length === 0) {
+      fetchSalaryDetails(payrollId);
+    }
+  }, [payrollId]);
+
+  const fetchSalaryDetails = async (payrollId) => {
+    try {
+      const response = await axios.get(`http://localhost:5000/payroll/${payrollId}/calculations`, {
+        withCredentials: true
+      });
+      const data = response.data;
+      console.log(data)
+      setSalaryDetails(data.salary_details);
+    } catch (error) {
+      console.error('Error fetching salary details:', error);
+    }
+  };
 
   const generateCSV = (data, filename, headers) => {
     const csvContent = [
@@ -21,9 +43,10 @@ const NSSFBreakdown = () => {
 
   const handlePayAll = () => {
     const nssfData = salaryDetails.map(employee => ({
-      name: employee.name,
+      name: employee.employee_name,
       nssf: employee.nssf,
-      nssfNumber: employee.nssfNumber,
+      employer_contribution:employee.employer_contribution,
+      nssfNumber: employee.nssf_number,
     }));
 
     generateCSV(nssfData, "NSSF_payments.csv", ["Name", "NSSF", "NSSF Number"]);
@@ -41,7 +64,8 @@ return (
             <thead>
               <tr>
                 <th>Name</th>
-                <th>NSSF</th>
+                <th>Employee Contribution</th>
+                <th>Employer Contribution</th>
                 <th>NSSF Number</th>
               </tr>
             </thead>
@@ -49,14 +73,15 @@ return (
               {salaryDetails.length > 0 ? (
                 salaryDetails.map((employee, index) => (
                   <tr key={index}>
-                    <td>{employee.name}</td>
+                    <td>{employee.employee_name}</td>
                     <td>{employee.nssf}</td>
-                    <td>{employee.nssfNumber}</td>
+                    <td>{employee.employer_nssf}</td>
+                    <td>{employee.nssf_number}</td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan="3" style={{ textAlign: 'center' }}>No payroll to submit</td>
+                  <td colSpan="4" style={{ textAlign: 'center' }}>No payroll to submit</td>
                 </tr>
               )}
             </tbody>
