@@ -43,6 +43,12 @@ const Sidebar = () => {
                 <p>Employees</p>
               </Link>
             </li>
+            <li className="nav-item">
+              <Link to="/payroll/history">
+                <i className="fas fa-history"></i>
+                <p>Payroll History</p>
+              </Link>
+            </li>
               
             </ul>
           </div>

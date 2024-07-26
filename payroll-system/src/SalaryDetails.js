@@ -19,15 +19,15 @@ const SalaryDetails = () => {
       fetchSalaryDetails(payrollId);
     }
   }, [payrollId]);
-  
+
   const fetchSalaryDetails = async (payrollId) => {
     try {
       const response = await axios.get(`http://localhost:5000/payroll/${payrollId}/calculations`, {
-        withCredentials: true // Ensure credentials are included in the request
+        withCredentials: true
       });
       const data = response.data;
-      const salary_details = data.salary_details
-      const status = data.payment_status
+      const salary_details = data.salary_details;
+      const status = data.payment_status;
       setSalaryDetails(salary_details);
       setPaymentStatus({
         netSalary: status.net_salary_status,
@@ -39,9 +39,8 @@ const SalaryDetails = () => {
     }
   };
 
-
   const handleView = (type) => {
-    navigate(`/${type}-breakdown`, { state: { salaryDetails, payrollId } });
+    navigate(`/payroll/${payrollId}/${type}-breakdown`, { state: { salaryDetails, payrollId, from: 'salary-details' } });
   };
 
   return (
@@ -63,28 +62,34 @@ const SalaryDetails = () => {
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td>{new Date().toLocaleDateString()}</td>
-                  <td>{new Date().toLocaleTimeString()}</td>
-                  <td>
-                    <button className="btn btn-primary btn-round ms-auto" onClick={() => handleView('net-salary')}>
-                      View
-                    </button>
-                  </td>
-                  <td>{paymentStatus.netSalary}</td>
-                  <td>
-                    <button onClick={() => handleView('paye')} className="btn btn-primary btn-round ms-auto">
-                      View
-                    </button>
-                  </td>
-                  <td>{paymentStatus.paye}</td>
-                  <td>
-                    <button onClick={() => handleView('nssf')} className="btn btn-primary btn-round ms-auto">
-                      View
-                    </button>
-                  </td>
-                  <td>{paymentStatus.nssf}</td>
-                </tr>
+                {salaryDetails.length > 0 ? (
+                  <tr>
+                    <td>{new Date().toLocaleDateString()}</td>
+                    <td>{new Date().toLocaleTimeString()}</td>
+                    <td>
+                      <button className="btn btn-primary btn-round ms-auto" onClick={() => handleView('net-salary')}>
+                        View
+                      </button>
+                    </td>
+                    <td>{paymentStatus.netSalary}</td>
+                    <td>
+                      <button onClick={() => handleView('paye')} className="btn btn-primary btn-round ms-auto">
+                        View
+                      </button>
+                    </td>
+                    <td>{paymentStatus.paye}</td>
+                    <td>
+                      <button onClick={() => handleView('nssf')} className="btn btn-primary btn-round ms-auto">
+                        View
+                      </button>
+                    </td>
+                    <td>{paymentStatus.nssf}</td>
+                  </tr>
+                ) : (
+                  <tr>
+                    <td colSpan="8">No salary details available</td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>

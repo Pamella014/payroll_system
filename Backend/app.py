@@ -147,6 +147,47 @@ class PayrollCalculation(db.Model):
             
         }
 
+#Payment Model
+class Payment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    payroll_id = db.Column(db.Integer, db.ForeignKey('payroll.id'), nullable=False)
+    employee_id = db.Column(db.Integer, db.ForeignKey('employee.id'), nullable=False)
+    employee_name = db.Column(db.String(100), nullable=False)
+    amount = db.Column(db.Float, nullable=False)
+    payment_type = db.Column(db.String(50), nullable=False)
+    date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    gross_salary = db.Column(db.Float, nullable=False)
+    net_salary = db.Column(db.Float, nullable=False)
+    nssf = db.Column(db.Float, nullable=False)
+    employer_nssf = db.Column(db.Float, nullable=False)
+    paye = db.Column(db.Float, nullable=False)
+    tin_number = db.Column(db.String(100), nullable=False)
+    nssf_number = db.Column(db.String(100), nullable=False)
+    preferred_payment_mode = db.Column(db.String(100), nullable=False)
+    mobile_number = db.Column(db.String(100), nullable=True)
+    bank_account_number = db.Column(db.String(100), nullable=True)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'payroll_id': self.payroll_id,
+            'employee_id': self.employee_id,
+            'employee_name': self.employee_name,
+            'amount': self.amount,
+            'payment_type': self.payment_type,
+            'date': self.date.strftime("%Y-%m-%d %H:%M:%S"),
+            'gross_salary': self.gross_salary,
+            'net_salary': self.net_salary,
+            'nssf': self.nssf,
+            'employer_nssf': self.employer_nssf,
+            'paye': self.paye,
+            'tin_number': self.tin_number,
+            'nssf_number': self.nssf_number,
+            'preferred_payment_mode': self.preferred_payment_mode,
+            'mobile_number': self.mobile_number,
+            'bank_account_number': self.bank_account_number,
+        }
+
 @app.route('/employees', methods=['GET'])
 @login_required
 def get_employees():
@@ -287,41 +328,6 @@ def update_status():
     return jsonify({'message': 'Status updated successfully'}), 200
 
 
-@app.route('/make-payment', methods=['POST'])
-@login_required
-def make_payment():
-    data = request.get_json()
-    logging.info(f'Received payload: {data}')
-    payment_type = data.get('type')
-    payroll_id = data.get('payroll_id')
-    if not payment_type or not payroll_id:
-        return jsonify({'success': False, 'message': 'Payment type and payroll ID are required'}), 400
-
-    try:
-        payroll = Payroll.query.filter_by(id=payroll_id, user_id=current_user.id).first()
-        if not payroll:
-            return jsonify({'success': False, 'message': 'Payroll not found'}), 404
-        
-        if payment_type == 'netSalary':
-            payroll.net_salary_status = 'Completed'
-        elif payment_type == 'paye':
-            payroll.paye_status = 'Completed'
-        elif payment_type == 'nssf':
-            payroll.nssf_status = 'Completed'
-        else:
-            return jsonify({'success': False, 'message': 'Invalid payment type'}), 400
-
-        db.session.commit()
-        return jsonify({'success': True, 'message': 'Payment completed successfully', 'status': {
-            'netSalary': payroll.net_salary_status,
-            'paye': payroll.paye_status,
-            'nssf': payroll.nssf_status
-        }})
-    except Exception as e:
-        db.session.rollback()
-        logging.error(f'Error processing payment: {e}')  
-        return jsonify({'success': False, 'message': str(e)}), 500
-
 @app.route('/payroll/<int:payroll_id>/calculations', methods=['GET'])
 @login_required
 def get_payroll_calculations(payroll_id):
@@ -358,6 +364,128 @@ def get_payroll_calculations(payroll_id):
             'nssf_status': payroll.nssf_status
         }
     })
+@app.route('/make-payment', methods=['POST'])
+@login_required
+def make_payment():
+    data = request.get_json()
+    logging.info(f'Received payload: {data}')
+    
+    if not data:
+        logging.error('No data received')
+        return jsonify({'success': False, 'message': 'No data received'}), 400
+
+    payment_type = data.get('type')
+    payroll_id = data.get('payroll_id')
+
+    logging.info(f'Payment Type: {payment_type}, Payroll ID: {payroll_id}')
+    
+    if not payment_type or not payroll_id:
+        logging.error('Missing payment type or payroll ID')
+        return jsonify({'success': False, 'message': 'Payment type and payroll ID are required'}), 400
+
+    try:
+        payroll = Payroll.query.filter_by(id=payroll_id, user_id=current_user.id).first()
+        if not payroll:
+            logging.error('Payroll not found')
+            return jsonify({'success': False, 'message': 'Payroll not found'}), 404
+
+        if payment_type not in ['netSalary', 'paye', 'nssf']:
+            logging.error('Invalid payment type')
+            return jsonify({'success': False, 'message': 'Invalid payment type'}), 400
+
+        # Update the status
+        if payment_type == 'netSalary':
+            payroll.net_salary_status = 'Completed'
+        elif payment_type == 'paye':
+            payroll.paye_status = 'Completed'
+        elif payment_type == 'nssf':
+            payroll.nssf_status = 'Completed'
+
+        # Mapping for the correct attribute names
+        attribute_mapping = {
+            'netSalary': 'net_salary',
+            'paye': 'paye',
+            'nssf': 'nssf'
+        }
+
+        # Save payment details for each employee
+        calculations = PayrollCalculation.query.filter_by(payroll_id=payroll_id).all()
+        for calculation in calculations:
+            employee = Employee.query.get(calculation.employee_id)
+            payment = Payment(
+                payroll_id=payroll_id,
+                employee_id=employee.id,
+                employee_name=employee.name,
+                amount=getattr(calculation, attribute_mapping[payment_type]),  # Correct attribute name
+                payment_type=payment_type,
+                gross_salary=calculation.gross_salary,
+                net_salary=calculation.net_salary,
+                nssf=calculation.nssf,
+                employer_nssf=calculation.employer_nssf,
+                paye=calculation.paye,
+                tin_number=employee.tin_number,
+                nssf_number=employee.nssf_number,
+                preferred_payment_mode=employee.preferred_payment_mode,
+                mobile_number=employee.mobile_number,
+                bank_account_number=employee.bank_account_number,
+            )
+            db.session.add(payment)
+
+        db.session.commit()
+        logging.info('Payment completed successfully')
+        return jsonify({'success': True, 'message': 'Payment completed successfully', 'status': {
+            'netSalary': payroll.net_salary_status,
+            'paye': payroll.paye_status,
+            'nssf': payroll.nssf_status
+        }})
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f'Error processing payment: {e}')  
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/payroll/history', methods=['GET'])
+@login_required
+def get_payroll_history():
+    payrolls = Payroll.query.filter_by(user_id=current_user.id).all()
+    payroll_history = []
+
+    for payroll in payrolls:
+        calculations = PayrollCalculation.query.filter_by(payroll_id=payroll.id).all()
+        payments = Payment.query.filter_by(payroll_id=payroll.id).all()
+        
+        salary_details = [
+            {
+                'employee_id': calc.employee_id,
+                'gross_salary': calc.gross_salary,
+                'net_salary': calc.net_salary,
+                'nssf': calc.nssf,
+                'employer_nssf': calc.employer_nssf,
+                'paye': calc.paye,
+                'payroll_id': calc.payroll_id,
+                'employee_name': Employee.query.get(calc.employee_id).name,
+                'tin_number': Employee.query.get(calc.employee_id).tin_number,
+                'nssf_number': Employee.query.get(calc.employee_id).nssf_number,
+                'preferred_payment_mode': Employee.query.get(calc.employee_id).preferred_payment_mode,
+                'mobile_number': Employee.query.get(calc.employee_id).mobile_number,
+                'bank_account_number': Employee.query.get(calc.employee_id).bank_account_number,
+            }
+            for calc in calculations
+        ]
+
+        payment_details = [payment.to_dict() for payment in payments]
+
+        payroll_history.append({
+            'payroll_id': payroll.id,
+            'month': payroll.month,
+            'year': payroll.year,
+            'net_salary_status': payroll.net_salary_status,
+            'paye_status': payroll.paye_status,
+            'nssf_status': payroll.nssf_status,
+            'salary_details': salary_details,
+            'payment_details': payment_details
+        })
+
+    return jsonify({'payroll_history': payroll_history})
 
 
 

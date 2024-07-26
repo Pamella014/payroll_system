@@ -1,12 +1,12 @@
-import React, {useState, useEffect} from 'react';
-import { useLocation} from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { saveAs } from 'file-saver';
 import axios from 'axios';
 
 const PAYEBreakdown = () => {
   const location = useLocation();
-  const query = new URLSearchParams(location.search);
-  const payrollId = query.get('payrollId');
+  const navigate = useNavigate();
+  const { payrollId } = useParams();
   const initialSalaryDetails = location.state?.salaryDetails || [];
   const [salaryDetails, setSalaryDetails] = useState(initialSalaryDetails);
   
@@ -22,13 +22,13 @@ const PAYEBreakdown = () => {
         withCredentials: true
       });
       const data = response.data;
-      const salary_details =data.salary_details;
+      const salary_details = data.salary_details;
       setSalaryDetails(salary_details);
     } catch (error) {
       console.error('Error fetching salary details:', error);
     }
   };
- 
+
   const generateCSV = (data, filename, headers) => {
     const csvContent = [
       headers,
@@ -40,7 +40,7 @@ const PAYEBreakdown = () => {
     saveAs(blob, filename);
   };
 
-  const handlePayAll = () => {
+  const handlePayAll = async () => {
     const payeData = salaryDetails.map(employee => ({
       name: employee.employee_name,
       paye: employee.paye,
@@ -48,8 +48,31 @@ const PAYEBreakdown = () => {
     }));
 
     generateCSV(payeData, "PAYE_payments.csv", ["Name", "PAYE", "TIN Number"]);
-    alert('Payment Successful');
-    setSalaryDetails([]);
+    
+    const payload = { 
+      type: 'paye', 
+      payroll_id: payrollId 
+    };
+
+    console.log('Payload:', payload); // Check the payload
+
+    try {
+      const response = await axios.post('http://localhost:5000/make-payment', 
+        payload, 
+        {
+          withCredentials: true
+        }
+      );
+      console.log(response.data);
+      if (response.data.success) {
+        alert('Payment Successful');
+        navigate(`/salary-details?payrollId=${payrollId}`);
+      } else {
+        console.error('Error:', response.data.message);
+      }
+    } catch (error) {
+      console.error('Error making payment:', error);
+    }
   };
 
   return (
@@ -87,9 +110,7 @@ const PAYEBreakdown = () => {
         )}
       </div>
     </div>
-    
   );
-
 };
 
 export default PAYEBreakdown;

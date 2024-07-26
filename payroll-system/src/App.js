@@ -11,6 +11,7 @@ import Header from './Components/header';
 import NetSalaryBreakdown from './Pages/NetSalary';
 import NSSFBreakdown from './Pages/Nssf';
 import PAYEBreakdown from './Pages/Paye';
+import PayrollHistory from './Pages/HistoryPage';
 import axios from 'axios';
 
 const App = () => {
@@ -64,10 +65,12 @@ const App = () => {
                         <Route path="/" element={<EmployeeForm employees={employees} setEmployees={setEmployees} />} />
                         <Route path="/employees" element={<EmployeeList employees={employees} setEmployees={setEmployees} />} />
                         <Route path="/salary-details" element={<SalaryDetails />} />
-                        <Route path="/net-salary-breakdown" element={<NetSalaryBreakdown />} />
-                        <Route path="/paye-breakdown" element={<PAYEBreakdown />} />
-                        <Route path="/nssf-breakdown" element={<NSSFBreakdown />} />
+                        <Route path="/payroll/:payrollId/net-salary-breakdown" element={<NetSalaryBreakdown />} />
+                        <Route path="/payroll/:payrollId/nssf-breakdown" element={<NSSFBreakdown />} />
+                        <Route path="/payroll/:payrollId/paye-breakdown" element={<PAYEBreakdown />} />
+                        <Route path="/payroll/history" element={<PayrollHistory />} />
                       </Routes>
+
                     </div>
                   </div>
                   <Footer />

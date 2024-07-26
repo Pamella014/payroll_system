@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { saveAs } from 'file-saver';
 import axios from 'axios';
 
 const NetSalaryBreakdown = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const query = new URLSearchParams(location.search);
-  const payrollId = query.get('payrollId');
+  const { payrollId } = useParams();
   const initialSalaryDetails = location.state?.salaryDetails || [];
+  const from = location.state?.from || 'salary-details';
   const [salaryDetails, setSalaryDetails] = useState(initialSalaryDetails);
 
   useEffect(() => {
@@ -23,7 +23,6 @@ const NetSalaryBreakdown = () => {
         withCredentials: true
       });
       const data = response.data;
-      console.log(data)
       setSalaryDetails(data.salary_details);
     } catch (error) {
       console.error('Error fetching salary details:', error);
@@ -43,18 +42,34 @@ const NetSalaryBreakdown = () => {
 
   const handlePayAll = async () => {
     const netSalaryData = salaryDetails.map(employee => ({
-      name: employee.name,
+      name: employee.employee_name,
       netSalary: employee.net_salary,
-      preferredPaymentMode: employee.preferredPaymentMode,
+      preferredPaymentMode: employee.preferred_payment_mode,
     }));
 
     generateCSV(netSalaryData, "NetSalary_payments.csv", ["Name", "Net Salary", "Preferred Payment Mode"]);
-    
+
+    const payload = { 
+      type: 'netSalary', 
+      payroll_id: payrollId 
+    };
+
     try {
-      const response = await axios.post('http://localhost:5000/make-payment', { type: 'netSalary', payroll_id: payrollId });
+      const response = await axios.post('http://localhost:5000/make-payment', 
+        payload, 
+        {
+          withCredentials: true
+        }
+      );
       if (response.data.success) {
         alert('Payment Successful');
-        navigate(`/salary-details?payrollId=${payrollId}`);
+        if (from === 'history') {
+          navigate('/payroll/history');
+        } else {
+          navigate(`/salary-details?payrollId=${payrollId}`);
+        }
+      } else {
+        console.error('Error:', response.data.message);
       }
     } catch (error) {
       console.error('Error making payment:', error);
@@ -75,13 +90,19 @@ const NetSalaryBreakdown = () => {
               </tr>
             </thead>
             <tbody>
-              {salaryDetails.map((employee, index) => (
-                <tr key={index}>
-                  <td>{employee.employee_name}</td>
-                  <td>{employee.net_salary}</td>
-                  <td>{employee.preferred_payment_mode}</td>
+              {salaryDetails.length > 0 ? (
+                salaryDetails.map((employee, index) => (
+                  <tr key={index}>
+                    <td>{employee.employee_name}</td>
+                    <td>{employee.net_salary}</td>
+                    <td>{employee.preferred_payment_mode}</td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="3">No salary details available</td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>
