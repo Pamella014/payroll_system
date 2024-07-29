@@ -1,20 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation,useParams, useNavigate } from 'react-router-dom';
+import { useLocation, useParams, useNavigate } from 'react-router-dom';
 import { saveAs } from 'file-saver';
 import axios from 'axios';
 
 const NSSFBreakdown = () => {
   const location = useLocation();
-  const { payrollId } = useParams(); // Use useParams to extract payrollId from the URL
+  const { payrollId } = useParams();
   const navigate = useNavigate();
   const initialSalaryDetails = location.state?.salaryDetails || [];
   const [salaryDetails, setSalaryDetails] = useState(initialSalaryDetails);
+  const [paymentStatus, setPaymentStatus] = useState('pending'); // Initialize payment status
 
   useEffect(() => {
     if (payrollId && initialSalaryDetails.length === 0) {
       fetchSalaryDetails(payrollId);
     }
-  }, [payrollId]);
+  }, [payrollId,initialSalaryDetails.length]);
 
   const fetchSalaryDetails = async (payrollId) => {
     try {
@@ -23,11 +24,12 @@ const NSSFBreakdown = () => {
       });
       const data = response.data;
       setSalaryDetails(data.salary_details);
+      setPaymentStatus(data.payment_status.nssf_status); // Set the payment status from the response
     } catch (error) {
       console.error('Error fetching salary details:', error);
     }
   };
-  console.log(payrollId)
+
   const generateCSV = (data, filename, headers) => {
     const csvContent = [
       headers,
@@ -66,6 +68,7 @@ const NSSFBreakdown = () => {
       console.log(response.data);
       if (response.data.success) {
         alert('Payment Successful');
+        setPaymentStatus('complete'); // Update the payment status to complete
         navigate(`/salary-details?payrollId=${payrollId}`);
       } else {
         console.error('Error:', response.data.message);
@@ -99,7 +102,9 @@ const NSSFBreakdown = () => {
             </tbody>
           </table>
         </div>
-        <button onClick={handlePayAll} className="btn btn-primary btn-round ms-auto">Pay All NSSF</button>
+        {paymentStatus === 'pending' && (
+          <button onClick={handlePayAll} className="btn btn-primary btn-round ms-auto">Pay All NSSF</button>
+        )}
       </div>
     </div>
   );

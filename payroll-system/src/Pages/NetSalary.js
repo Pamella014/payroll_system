@@ -10,12 +10,13 @@ const NetSalaryBreakdown = () => {
   const initialSalaryDetails = location.state?.salaryDetails || [];
   const from = location.state?.from || 'salary-details';
   const [salaryDetails, setSalaryDetails] = useState(initialSalaryDetails);
+  const [paymentStatus, setPaymentStatus] = useState('pending');
 
   useEffect(() => {
     if (payrollId && initialSalaryDetails.length === 0) {
       fetchSalaryDetails(payrollId);
     }
-  }, [payrollId]);
+  }, [payrollId,initialSalaryDetails.length]);
 
   const fetchSalaryDetails = async (payrollId) => {
     try {
@@ -24,6 +25,7 @@ const NetSalaryBreakdown = () => {
       });
       const data = response.data;
       setSalaryDetails(data.salary_details);
+      setPaymentStatus(data.payment_status.net_salary_status);
     } catch (error) {
       console.error('Error fetching salary details:', error);
     }
@@ -63,6 +65,7 @@ const NetSalaryBreakdown = () => {
       );
       if (response.data.success) {
         alert('Payment Successful');
+        setPaymentStatus('complete');
         if (from === 'history') {
           navigate('/payroll/history');
         } else {
@@ -106,8 +109,12 @@ const NetSalaryBreakdown = () => {
             </tbody>
           </table>
         </div>
-        <button onClick={handlePayAll} className="btn btn-primary btn-round ms-auto">Pay All Net Salaries</button>
-      </div>
+        {paymentStatus === 'pending' && (
+          <button onClick={handlePayAll} className="btn btn-primary btn-round ms-auto">
+            Pay All Net Salaries
+          </button>
+        )}      
+        </div>
     </div>
   );
 };

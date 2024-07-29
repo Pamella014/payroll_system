@@ -9,12 +9,13 @@ const PAYEBreakdown = () => {
   const { payrollId } = useParams();
   const initialSalaryDetails = location.state?.salaryDetails || [];
   const [salaryDetails, setSalaryDetails] = useState(initialSalaryDetails);
-  
+  const [paymentStatus, setPaymentStatus] = useState('pending'); // Initialize payment status
+
   useEffect(() => {
     if (payrollId && initialSalaryDetails.length === 0) {
       fetchSalaryDetails(payrollId);
     }
-  }, [payrollId]);
+  }, [payrollId,initialSalaryDetails.length]);
 
   const fetchSalaryDetails = async (payrollId) => {
     try {
@@ -22,8 +23,8 @@ const PAYEBreakdown = () => {
         withCredentials: true
       });
       const data = response.data;
-      const salary_details = data.salary_details;
-      setSalaryDetails(salary_details);
+      setSalaryDetails(data.salary_details);
+      setPaymentStatus(data.payment_status.paye_status); // Set the payment status from the response
     } catch (error) {
       console.error('Error fetching salary details:', error);
     }
@@ -66,6 +67,7 @@ const PAYEBreakdown = () => {
       console.log(response.data);
       if (response.data.success) {
         alert('Payment Successful');
+        setPaymentStatus('complete'); // Update the payment status to complete
         navigate(`/salary-details?payrollId=${payrollId}`);
       } else {
         console.error('Error:', response.data.message);
@@ -105,7 +107,7 @@ const PAYEBreakdown = () => {
             </tbody>
           </table>
         </div>
-        {salaryDetails.length > 0 && (
+        {paymentStatus === 'pending' && (
           <button onClick={handlePayAll} className="btn btn-primary btn-round ms-auto">Pay All PAYE</button>
         )}
       </div>

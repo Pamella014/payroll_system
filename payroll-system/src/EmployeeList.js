@@ -1,10 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Modal } from 'bootstrap';
 
 const EmployeeList = ({ employees, setEmployees }) => {
   const navigate = useNavigate();
   const [year, setYear] = useState('');
   const [month, setMonth] = useState('');
+
+  const months = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
 
   useEffect(() => {
     const fetchEmployees = async () => {
@@ -22,12 +28,12 @@ const EmployeeList = ({ employees, setEmployees }) => {
   }, [setEmployees]);
 
   const openPayrollModal = () => {
-    const modal = new bootstrap.Modal(document.getElementById('payrollModal'));
+    const modal = new Modal(document.getElementById('payrollModal'));
     modal.show();
   };
 
   const closeModal = () => {
-    const modal = bootstrap.Modal.getInstance(document.getElementById('payrollModal'));
+    const modal = Modal.getInstance(document.getElementById('payrollModal'));
     modal.hide();
   };
 
@@ -77,6 +83,10 @@ const EmployeeList = ({ employees, setEmployees }) => {
     }
   };
 
+  const handleAddRowClick = () => {
+    navigate('/'); 
+  };
+
   return (
     <div className="col-md-12">
       <div className="card">
@@ -84,8 +94,7 @@ const EmployeeList = ({ employees, setEmployees }) => {
           <div className="d-flex align-items-center">
             <button
               className="btn btn-primary btn-round ms-auto"
-              data-bs-toggle="modal"
-              data-bs-target="#addRowModal"
+              onClick={handleAddRowClick}
             >
               <i className="fa fa-plus"></i>
               Add Row
@@ -155,7 +164,7 @@ const EmployeeList = ({ employees, setEmployees }) => {
               <button
                 type="button"
                 className="close"
-                data-dismiss="modal"
+                onClick={closeModal}
                 aria-label="Close"
               >
                 <span aria-hidden="true">&times;</span>
@@ -182,13 +191,17 @@ const EmployeeList = ({ employees, setEmployees }) => {
                   <div className="col-sm-6">
                     <div className="form-group form-group-default">
                       <label>Month</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        value={month}
-                        onChange={(e) => setMonth(e.target.value)}
-                        placeholder="Enter month"
-                      />
+                      <select
+                          className="form-control"
+                          value={month}
+                          onChange={(e) => setMonth(e.target.value)}
+                          placeholder="Select month"
+                        >
+                          <option value="" disabled>Select month</option>
+                          {months.map((m, index) => (
+                            <option key={index} value={m}>{m}</option>
+                          ))}
+                        </select>
                     </div>
                   </div>
                 </div>
