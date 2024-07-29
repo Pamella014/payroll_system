@@ -13,6 +13,9 @@ import NSSFBreakdown from './Pages/Nssf';
 import PAYEBreakdown from './Pages/Paye';
 import PayrollHistory from './Pages/HistoryPage';
 import axios from 'axios';
+// import 'bootstrap/dist/css/bootstrap.min.css';
+import 'bootstrap/dist/js/bootstrap.bundle.min.js';
+
 
 const App = () => {
   const [employees, setEmployees] = useState([]);
