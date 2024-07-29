@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import config from './config';
 
 const SalaryDetails = () => {
   const location = useLocation();
@@ -22,7 +23,7 @@ const SalaryDetails = () => {
 
   const fetchSalaryDetails = async (payrollId) => {
     try {
-      const response = await axios.get(`http://localhost:5000/payroll/${payrollId}/calculations`, {
+      const response = await axios.get(`${config.apiBaseUrl}/payroll/${payrollId}/calculations`, {
         withCredentials: true
       });
       const data = response.data;
@@ -71,19 +72,31 @@ const SalaryDetails = () => {
                         View
                       </button>
                     </td>
-                    <td>{paymentStatus.netSalary}</td>
+                    <td>
+                      <span className={`badge ${paymentStatus.netSalary === 'Completed' ? 'badge-success' : 'badge-danger'}`}>
+                        {paymentStatus.netSalary}
+                      </span>
+                    </td>
                     <td>
                       <button onClick={() => handleView('paye')} className="btn btn-primary btn-round ms-auto">
                         View
                       </button>
                     </td>
-                    <td>{paymentStatus.paye}</td>
+                    <td>
+                      <span className={`badge ${paymentStatus.paye === 'Completed' ? 'badge-success' : 'badge-danger'}`}>
+                        {paymentStatus.paye}
+                      </span>
+                    </td>
                     <td>
                       <button onClick={() => handleView('nssf')} className="btn btn-primary btn-round ms-auto">
                         View
                       </button>
                     </td>
-                    <td>{paymentStatus.nssf}</td>
+                    <td>
+                      <span className={`badge ${paymentStatus.nssf === 'Completed' ? 'badge-success' : 'badge-danger'}`}>
+                        {paymentStatus.nssf}
+                      </span>
+                    </td>
                   </tr>
                 ) : (
                   <tr>

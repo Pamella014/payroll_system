@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { saveAs } from 'file-saver';
 import axios from 'axios';
+import config from '../config';
 
 const NetSalaryBreakdown = () => {
   const location = useLocation();
@@ -20,7 +21,7 @@ const NetSalaryBreakdown = () => {
 
   const fetchSalaryDetails = async (payrollId) => {
     try {
-      const response = await axios.get(`http://localhost:5000/payroll/${payrollId}/calculations`, {
+      const response = await axios.get(`${config.apiBaseUrl}/payroll/${payrollId}/calculations`, {
         withCredentials: true
       });
       const data = response.data;
@@ -57,7 +58,7 @@ const NetSalaryBreakdown = () => {
     };
 
     try {
-      const response = await axios.post('http://localhost:5000/make-payment', 
+      const response = await axios.post(`${config.apiBaseUrl}/make-payment`, 
         payload, 
         {
           withCredentials: true

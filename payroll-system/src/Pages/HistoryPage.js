@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import config from '../config';
 
 const PayrollHistory = () => {
   const navigate = useNavigate();
@@ -12,7 +13,7 @@ const PayrollHistory = () => {
 
   const fetchPayrollHistory = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/payroll/history', {
+      const response = await axios.get(`${config.apiBaseUrl}/payroll/history`, {
         withCredentials: true
       });
       setPayrolls(response.data.payroll_history);

@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios'
 import { useNavigate,Link } from 'react-router-dom';
+import config from '../config';
 
 const Login = ({ setLoggedIn }) => {
   const [email, setEmail] = useState('');
@@ -11,7 +12,7 @@ const Login = ({ setLoggedIn }) => {
   useEffect(() => {
     const checkLoginStatus = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/login-status', { withCredentials: true });
+        const response = await axios.get(`${config.apiBaseUrl}/login-status`, { withCredentials: true });
         if (response.data.loggedIn) {
           setLoggedIn(true);
           navigate('/');
@@ -24,7 +25,7 @@ const Login = ({ setLoggedIn }) => {
   }, [setLoggedIn, navigate]);
 
   const handleLogin = () => {
-    axios.post('http://localhost:5000/login', {
+    axios.post(`${config.apiBaseUrl}/login`, {
       email,
       password,
     }, {

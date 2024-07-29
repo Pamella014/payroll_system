@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Modal } from 'bootstrap';
+import config from './config';
 
 const EmployeeList = ({ employees, setEmployees }) => {
   const navigate = useNavigate();
@@ -15,7 +16,7 @@ const EmployeeList = ({ employees, setEmployees }) => {
   useEffect(() => {
     const fetchEmployees = async () => {
       try {
-        const response = await fetch('http://localhost:5000/employees', {
+        const response = await fetch(`${config.apiBaseUrl}/employees`, {
           credentials: 'include',
         });
         const data = await response.json();
@@ -39,7 +40,7 @@ const EmployeeList = ({ employees, setEmployees }) => {
 
   const calculateSalaries = async (payrollId) => {
     try {
-      const response = await fetch('http://localhost:5000/calculate-salaries', {
+      const response = await fetch(`${config.apiBaseUrl}/calculate-salaries`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -63,7 +64,7 @@ const EmployeeList = ({ employees, setEmployees }) => {
 
   const createPayroll = async () => {
     try {
-      const response = await fetch('http://localhost:5000/create-payroll', {
+      const response = await fetch(`${config.apiBaseUrl}/create-payroll`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -13,14 +13,14 @@ import NSSFBreakdown from './Pages/Nssf';
 import PAYEBreakdown from './Pages/Paye';
 import PayrollHistory from './Pages/HistoryPage';
 import axios from 'axios';
-// import 'bootstrap/dist/css/bootstrap.min.css';
-// import 'bootstrap/dist/js/bootstrap.bundle.min.js';
+import config from './config';
 
 
 const App = () => {
   const [employees, setEmployees] = useState([]);
   const [loggedIn, setLoggedIn] = useState(false);
   const [user, setUser] = useState({});
+  console.log('API URL:', process.env.REACT_APP_API_URL);
 
   useEffect(() => {
     const isLoggedIn = localStorage.getItem('loggedIn') === 'true';
@@ -30,7 +30,7 @@ const App = () => {
   const handleLogin = () => {
     setLoggedIn(true);
     localStorage.setItem('loggedIn', 'true');
-    axios.get('http://localhost:5000/login-status', { withCredentials: true })
+    axios.get(`${config.apiBaseUrl}/login-status`, { withCredentials: true })
       .then(response => {
         if (response.data.loggedIn) {
           // console.log(response.dat)

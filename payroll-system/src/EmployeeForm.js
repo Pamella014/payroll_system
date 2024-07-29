@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import config from './config';
+
 
 const EmployeeForm = ({ employees, setEmployees }) => {
   const [newEmployee, setNewEmployee] = useState({
@@ -26,7 +28,7 @@ const EmployeeForm = ({ employees, setEmployees }) => {
       return;
     }
 
-    const response = await fetch('http://localhost:5000/employee', {
+    const response = await fetch(`${config.apiBaseUrl}/employee`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
