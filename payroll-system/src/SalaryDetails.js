@@ -1,18 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import config from './config';
+import React, { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import axios from "axios";
+import config from "./config";
 
 const SalaryDetails = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const query = new URLSearchParams(location.search);
-  const payrollId = query.get('payrollId');
+  const payrollId = query.get("payrollId");
   const [salaryDetails, setSalaryDetails] = useState([]);
   const [paymentStatus, setPaymentStatus] = useState({
-    netSalary: '',
-    paye: '',
-    nssf: ''
+    netSalary: "",
+    paye: "",
+    nssf: "",
   });
 
   useEffect(() => {
@@ -23,9 +23,12 @@ const SalaryDetails = () => {
 
   const fetchSalaryDetails = async (payrollId) => {
     try {
-      const response = await axios.get(`${config.apiBaseUrl}/payroll/${payrollId}/calculations`, {
-        withCredentials: true
-      });
+      const response = await axios.get(
+        `${config.apiBaseUrlProd}/payroll/${payrollId}/calculations`,
+        {
+          withCredentials: true,
+        }
+      );
       const data = response.data;
       const salary_details = data.salary_details;
       const status = data.payment_status;
@@ -33,15 +36,17 @@ const SalaryDetails = () => {
       setPaymentStatus({
         netSalary: status.net_salary_status,
         paye: status.paye_status,
-        nssf: status.nssf_status
+        nssf: status.nssf_status,
       });
     } catch (error) {
-      console.error('Error fetching salary details:', error);
+      console.error("Error fetching salary details:", error);
     }
   };
 
   const handleView = (type) => {
-    navigate(`/payroll/${payrollId}/${type}-breakdown`, { state: { salaryDetails, payrollId, from: 'salary-details' } });
+    navigate(`/payroll/${payrollId}/${type}-breakdown`, {
+      state: { salaryDetails, payrollId, from: "salary-details" },
+    });
   };
 
   return (
@@ -68,32 +73,59 @@ const SalaryDetails = () => {
                     <td>{new Date().toLocaleDateString()}</td>
                     <td>{new Date().toLocaleTimeString()}</td>
                     <td>
-                      <button className="btn btn-primary btn-round ms-auto" onClick={() => handleView('net-salary')}>
+                      <button
+                        className="btn btn-primary btn-round ms-auto"
+                        onClick={() => handleView("net-salary")}
+                      >
                         View
                       </button>
                     </td>
                     <td>
-                      <span className={`badge ${paymentStatus.netSalary === 'Completed' ? 'badge-success' : 'badge-danger'}`}>
+                      <span
+                        className={`badge ${
+                          paymentStatus.netSalary === "Completed"
+                            ? "badge-success"
+                            : "badge-danger"
+                        }`}
+                      >
                         {paymentStatus.netSalary}
                       </span>
                     </td>
                     <td>
-                      <button onClick={() => handleView('paye')} className="btn btn-primary btn-round ms-auto">
+                      <button
+                        onClick={() => handleView("paye")}
+                        className="btn btn-primary btn-round ms-auto"
+                      >
                         View
                       </button>
                     </td>
                     <td>
-                      <span className={`badge ${paymentStatus.paye === 'Completed' ? 'badge-success' : 'badge-danger'}`}>
+                      <span
+                        className={`badge ${
+                          paymentStatus.paye === "Completed"
+                            ? "badge-success"
+                            : "badge-danger"
+                        }`}
+                      >
                         {paymentStatus.paye}
                       </span>
                     </td>
                     <td>
-                      <button onClick={() => handleView('nssf')} className="btn btn-primary btn-round ms-auto">
+                      <button
+                        onClick={() => handleView("nssf")}
+                        className="btn btn-primary btn-round ms-auto"
+                      >
                         View
                       </button>
                     </td>
                     <td>
-                      <span className={`badge ${paymentStatus.nssf === 'Completed' ? 'badge-success' : 'badge-danger'}`}>
+                      <span
+                        className={`badge ${
+                          paymentStatus.nssf === "Completed"
+                            ? "badge-success"
+                            : "badge-danger"
+                        }`}
+                      >
                         {paymentStatus.nssf}
                       </span>
                     </td>

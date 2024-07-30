@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import config from '../config';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import config from "../config";
 
 const PayrollHistory = () => {
   const navigate = useNavigate();
@@ -13,17 +13,22 @@ const PayrollHistory = () => {
 
   const fetchPayrollHistory = async () => {
     try {
-      const response = await axios.get(`${config.apiBaseUrl}/payroll/history`, {
-        withCredentials: true
-      });
+      const response = await axios.get(
+        `${config.apiBaseUrlProd}/payroll/history`,
+        {
+          withCredentials: true,
+        }
+      );
       setPayrolls(response.data.payroll_history);
     } catch (error) {
-      console.error('Error fetching payroll history:', error);
+      console.error("Error fetching payroll history:", error);
     }
   };
 
   const handleView = (payrollId, type) => {
-    navigate(`/payroll/${payrollId}/${type}-breakdown`, { state: { payrollId, from: 'history' } });
+    navigate(`/payroll/${payrollId}/${type}-breakdown`, {
+      state: { payrollId, from: "history" },
+    });
   };
 
   return (
@@ -49,42 +54,71 @@ const PayrollHistory = () => {
                   payrolls.map((payroll) => (
                     <tr key={payroll.payroll_id}>
                       <td>
-                        <button
-                        class="btn btn-icon btn-round btn-success btn-sm me-2"
-                        >
-                        <i class="fa fa-check"></i>
+                        <button class="btn btn-icon btn-round btn-success btn-sm me-2">
+                          <i class="fa fa-check"></i>
                         </button>
-                        {payroll.month}</td>
+                        {payroll.month}
+                      </td>
                       <td>{payroll.year}</td>
                       <td>
-                        <button className="btn btn-primary btn-round ms-auto" onClick={() => handleView(payroll.payroll_id, 'net-salary')}>
+                        <button
+                          className="btn btn-primary btn-round ms-auto"
+                          onClick={() =>
+                            handleView(payroll.payroll_id, "net-salary")
+                          }
+                        >
                           View
                         </button>
                       </td>
                       <td>
-                      <span className={`badge ${payroll.net_salary_status === 'Completed' ? 'badge-success' : 'badge-danger'}`}>
-                      {payroll.net_salary_status}</span>
-                     </td>
-                      <td>
-                        <button onClick={() => handleView(payroll.payroll_id, 'paye')} className="btn btn-primary btn-round ms-auto">
-                          View
-                        </button>
-                      </td>
-                      <td>
-                      <span className={`badge ${payroll.paye_status === 'Completed' ? 'badge-success' : 'badge-danger'}`}>
-                      {payroll.paye_status}
+                        <span
+                          className={`badge ${
+                            payroll.net_salary_status === "Completed"
+                              ? "badge-success"
+                              : "badge-danger"
+                          }`}
+                        >
+                          {payroll.net_salary_status}
                         </span>
                       </td>
                       <td>
-                        <button onClick={() => handleView(payroll.payroll_id, 'nssf')} className="btn btn-primary btn-round ms-auto">
+                        <button
+                          onClick={() => handleView(payroll.payroll_id, "paye")}
+                          className="btn btn-primary btn-round ms-auto"
+                        >
                           View
                         </button>
                       </td>
                       <td>
-                      <span className={`badge ${payroll.nssf_status === 'Completed' ? 'badge-success' : 'badge-danger'}`}>
-                        {payroll.nssf_status}
+                        <span
+                          className={`badge ${
+                            payroll.paye_status === "Completed"
+                              ? "badge-success"
+                              : "badge-danger"
+                          }`}
+                        >
+                          {payroll.paye_status}
                         </span>
-                        </td>
+                      </td>
+                      <td>
+                        <button
+                          onClick={() => handleView(payroll.payroll_id, "nssf")}
+                          className="btn btn-primary btn-round ms-auto"
+                        >
+                          View
+                        </button>
+                      </td>
+                      <td>
+                        <span
+                          className={`badge ${
+                            payroll.nssf_status === "Completed"
+                              ? "badge-success"
+                              : "badge-danger"
+                          }`}
+                        >
+                          {payroll.nssf_status}
+                        </span>
+                      </td>
                     </tr>
                   ))
                 ) : (

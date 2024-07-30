@@ -1,52 +1,57 @@
-import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import EmployeeForm from './EmployeeForm';
-import EmployeeList from './EmployeeList';
-import SalaryDetails from './SalaryDetails';
-import Login from './Authentication/login';
-import Register from './Authentication/Register';
-import Sidebar from './Components/sideBar';
-import Footer from './Components/footer';
-import Header from './Components/header';
-import NetSalaryBreakdown from './Pages/NetSalary';
-import NSSFBreakdown from './Pages/Nssf';
-import PAYEBreakdown from './Pages/Paye';
-import PayrollHistory from './Pages/HistoryPage';
-import axios from 'axios';
-import config from './config';
-
+import React, { useState, useEffect } from "react";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+import EmployeeForm from "./EmployeeForm";
+import EmployeeList from "./EmployeeList";
+import SalaryDetails from "./SalaryDetails";
+import Login from "./Authentication/login";
+import Register from "./Authentication/Register";
+import Sidebar from "./Components/sideBar";
+import Footer from "./Components/footer";
+import Header from "./Components/header";
+import NetSalaryBreakdown from "./Pages/NetSalary";
+import NSSFBreakdown from "./Pages/Nssf";
+import PAYEBreakdown from "./Pages/Paye";
+import PayrollHistory from "./Pages/HistoryPage";
+import axios from "axios";
+import config from "./config";
 
 const App = () => {
   const [employees, setEmployees] = useState([]);
   const [loggedIn, setLoggedIn] = useState(false);
   const [user, setUser] = useState({});
-  console.log('API URL:', process.env.REACT_APP_API_URL);
+  // console.log("API URL:", process.env.REACT_APP_API_URL);
 
   useEffect(() => {
-    const isLoggedIn = localStorage.getItem('loggedIn') === 'true';
+    const isLoggedIn = localStorage.getItem("loggedIn") === "true";
     setLoggedIn(isLoggedIn);
   }, []);
 
   const handleLogin = () => {
     setLoggedIn(true);
-    localStorage.setItem('loggedIn', 'true');
-    axios.get(`${config.apiBaseUrl}/login-status`, { withCredentials: true })
-      .then(response => {
+    localStorage.setItem("loggedIn", "true");
+    axios
+      .get(`${config.apiBaseUrlProd}/login-status`, { withCredentials: true })
+      .then((response) => {
         if (response.data.loggedIn) {
           // console.log(response.dat)
 
           setUser(response.data.user);
         }
       })
-      .catch(error => {
+      .catch((error) => {
         console.error(error);
       });
   };
 
   const handleLogout = () => {
     setLoggedIn(false);
-    localStorage.removeItem('loggedIn');
-    setUser({})
+    localStorage.removeItem("loggedIn");
+    setUser({});
   };
 
   return (
@@ -65,15 +70,45 @@ const App = () => {
                   <div className="container">
                     <div className="page-inner">
                       <Routes>
-                        <Route path="/" element={<EmployeeForm employees={employees} setEmployees={setEmployees} />} />
-                        <Route path="/employees" element={<EmployeeList employees={employees} setEmployees={setEmployees} />} />
-                        <Route path="/salary-details" element={<SalaryDetails />} />
-                        <Route path="/payroll/:payrollId/net-salary-breakdown" element={<NetSalaryBreakdown />} />
-                        <Route path="/payroll/:payrollId/nssf-breakdown" element={<NSSFBreakdown />} />
-                        <Route path="/payroll/:payrollId/paye-breakdown" element={<PAYEBreakdown />} />
-                        <Route path="/payroll/history" element={<PayrollHistory />} />
+                        <Route
+                          path="/"
+                          element={
+                            <EmployeeForm
+                              employees={employees}
+                              setEmployees={setEmployees}
+                            />
+                          }
+                        />
+                        <Route
+                          path="/employees"
+                          element={
+                            <EmployeeList
+                              employees={employees}
+                              setEmployees={setEmployees}
+                            />
+                          }
+                        />
+                        <Route
+                          path="/salary-details"
+                          element={<SalaryDetails />}
+                        />
+                        <Route
+                          path="/payroll/:payrollId/net-salary-breakdown"
+                          element={<NetSalaryBreakdown />}
+                        />
+                        <Route
+                          path="/payroll/:payrollId/nssf-breakdown"
+                          element={<NSSFBreakdown />}
+                        />
+                        <Route
+                          path="/payroll/:payrollId/paye-breakdown"
+                          element={<PAYEBreakdown />}
+                        />
+                        <Route
+                          path="/payroll/history"
+                          element={<PayrollHistory />}
+                        />
                       </Routes>
-
                     </div>
                   </div>
                   <Footer />

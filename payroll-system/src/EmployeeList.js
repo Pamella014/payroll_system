@@ -1,53 +1,66 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Modal } from 'bootstrap';
-import config from './config';
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Modal } from "bootstrap";
+import config from "./config";
 
 const EmployeeList = ({ employees, setEmployees }) => {
   const navigate = useNavigate();
-  const [year, setYear] = useState('');
-  const [month, setMonth] = useState('');
+  const [year, setYear] = useState("");
+  const [month, setMonth] = useState("");
 
   const months = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
   ];
 
   useEffect(() => {
     const fetchEmployees = async () => {
       try {
-        const response = await fetch(`${config.apiBaseUrl}/employees`, {
-          credentials: 'include',
+        const response = await fetch(`${config.apiBaseUrlProd}/employees`, {
+          credentials: "include",
         });
         const data = await response.json();
         setEmployees(data);
       } catch (error) {
-        console.error('Error fetching employees:', error);
+        console.error("Error fetching employees:", error);
       }
     };
     fetchEmployees();
   }, [setEmployees]);
 
   const openPayrollModal = () => {
-    const modal = new Modal(document.getElementById('payrollModal'));
+    const modal = new Modal(document.getElementById("payrollModal"));
     modal.show();
   };
 
   const closeModal = () => {
-    const modal = Modal.getInstance(document.getElementById('payrollModal'));
+    const modal = Modal.getInstance(document.getElementById("payrollModal"));
     modal.hide();
   };
 
   const calculateSalaries = async (payrollId) => {
     try {
-      const response = await fetch(`${config.apiBaseUrl}/calculate-salaries`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({ payroll_id: payrollId }),
-      });
+      const response = await fetch(
+        `${config.apiBaseUrlProd}/calculate-salaries`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({ payroll_id: payrollId }),
+        }
+      );
 
       if (response.ok) {
         const result = await response.json();
@@ -55,21 +68,21 @@ const EmployeeList = ({ employees, setEmployees }) => {
         navigate(`/salary-details?payrollId=${payrollId}`);
       } else {
         const result = await response.json();
-        console.error('Error calculating salaries:', result.message);
+        console.error("Error calculating salaries:", result.message);
       }
     } catch (error) {
-      console.error('Error calculating salaries:', error);
+      console.error("Error calculating salaries:", error);
     }
   };
 
   const createPayroll = async () => {
     try {
-      const response = await fetch(`${config.apiBaseUrl}/create-payroll`, {
-        method: 'POST',
+      const response = await fetch(`${config.apiBaseUrlProd}/create-payroll`, {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        credentials: 'include',
+        credentials: "include",
         body: JSON.stringify({ year, month }),
       });
       const result = await response.json();
@@ -77,15 +90,15 @@ const EmployeeList = ({ employees, setEmployees }) => {
         await calculateSalaries(result.payroll_id);
         closeModal();
       } else {
-        console.error('Error creating payroll:', result.message);
+        console.error("Error creating payroll:", result.message);
       }
     } catch (error) {
-      console.error('Error creating payroll:', error);
+      console.error("Error creating payroll:", error);
     }
   };
 
   const handleAddRowClick = () => {
-    navigate('/'); 
+    navigate("/");
   };
 
   return (
@@ -101,7 +114,10 @@ const EmployeeList = ({ employees, setEmployees }) => {
               Add Row
             </button>
             {employees.length > 0 && (
-              <button onClick={openPayrollModal} className="btn btn-label-info btn-round ms-3">
+              <button
+                onClick={openPayrollModal}
+                className="btn btn-label-info btn-round ms-3"
+              >
                 Create Payroll
               </button>
             )}
@@ -114,8 +130,7 @@ const EmployeeList = ({ employees, setEmployees }) => {
             tabIndex="-1"
             role="dialog"
             aria-hidden="true"
-          >
-          </div>
+          ></div>
           <h4 className="card-title">Employees</h4>
           <div className="content">
             <div className="table-responsive">
@@ -172,9 +187,7 @@ const EmployeeList = ({ employees, setEmployees }) => {
               </button>
             </div>
             <div className="modal-body">
-              <p className="small">
-                Enter the year and month for the payroll.
-              </p>
+              <p className="small">Enter the year and month for the payroll.</p>
               <form>
                 <div className="row">
                   <div className="col-sm-6">
@@ -193,16 +206,20 @@ const EmployeeList = ({ employees, setEmployees }) => {
                     <div className="form-group form-group-default">
                       <label>Month</label>
                       <select
-                          className="form-control"
-                          value={month}
-                          onChange={(e) => setMonth(e.target.value)}
-                          placeholder="Select month"
-                        >
-                          <option value="" disabled>Select month</option>
-                          {months.map((m, index) => (
-                            <option key={index} value={m}>{m}</option>
-                          ))}
-                        </select>
+                        className="form-control"
+                        value={month}
+                        onChange={(e) => setMonth(e.target.value)}
+                        placeholder="Select month"
+                      >
+                        <option value="" disabled>
+                          Select month
+                        </option>
+                        {months.map((m, index) => (
+                          <option key={index} value={m}>
+                            {m}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                   </div>
                 </div>
