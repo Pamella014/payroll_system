@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import axios from 'axios'
 import { useNavigate } from 'react-router-dom';
+import config from '../config';
 
 const Register = () => {
   const [username, setUsername] = useState('');
@@ -11,7 +12,7 @@ const Register = () => {
 
 
   const handleRegister = () => {
-    axios.post('http://localhost:5000/register', {
+    axios.post(`${config.apiBaseUrlProd}/register`, {
       username,
       email,
       password,
