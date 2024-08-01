@@ -27,7 +27,7 @@ const EmployeeForm = ({ employees, setEmployees }) => {
       return;
     }
 
-    const response = await fetch(`${config.apiBaseUrlProd}/employee`, {
+    const response = await fetch(`${config.apiBaseUrl}/employee`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

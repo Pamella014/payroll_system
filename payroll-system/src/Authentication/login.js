@@ -13,7 +13,7 @@ const Login = ({ setLoggedIn }) => {
     const checkLoginStatus = async () => {
       try {
         const response = await axios.get(
-          `${config.apiBaseUrlProd}/login-status`,
+          `${config.apiBaseUrl}/login-status`,
           { withCredentials: true }
         );
         if (response.data.loggedIn) {
@@ -30,7 +30,7 @@ const Login = ({ setLoggedIn }) => {
   const handleLogin = () => {
     axios
       .post(
-        `${config.apiBaseUrlProd}/login`,
+        `${config.apiBaseUrl}/login`,
         {
           email,
           password,

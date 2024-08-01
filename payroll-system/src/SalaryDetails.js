@@ -24,7 +24,7 @@ const SalaryDetails = () => {
   const fetchSalaryDetails = async (payrollId) => {
     try {
       const response = await axios.get(
-        `${config.apiBaseUrlProd}/payroll/${payrollId}/calculations`,
+        `${config.apiBaseUrl}/payroll/${payrollId}/calculations`,
         {
           withCredentials: true,
         }

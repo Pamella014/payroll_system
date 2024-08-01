@@ -12,7 +12,7 @@ const Register = () => {
 
 
   const handleRegister = () => {
-    axios.post(`${config.apiBaseUrlProd}/register`, {
+    axios.post(`${config.apiBaseUrl}/register`, {
       username,
       email,
       password,

@@ -26,7 +26,7 @@ const EmployeeList = ({ employees, setEmployees }) => {
   useEffect(() => {
     const fetchEmployees = async () => {
       try {
-        const response = await fetch(`${config.apiBaseUrlProd}/employees`, {
+        const response = await fetch(`${config.apiBaseUrl}/employees`, {
           credentials: "include",
         });
         const data = await response.json();
@@ -51,7 +51,7 @@ const EmployeeList = ({ employees, setEmployees }) => {
   const calculateSalaries = async (payrollId) => {
     try {
       const response = await fetch(
-        `${config.apiBaseUrlProd}/calculate-salaries`,
+        `${config.apiBaseUrl}/calculate-salaries`,
         {
           method: "POST",
           headers: {
@@ -77,7 +77,7 @@ const EmployeeList = ({ employees, setEmployees }) => {
 
   const createPayroll = async () => {
     try {
-      const response = await fetch(`${config.apiBaseUrlProd}/create-payroll`, {
+      const response = await fetch(`${config.apiBaseUrl}/create-payroll`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

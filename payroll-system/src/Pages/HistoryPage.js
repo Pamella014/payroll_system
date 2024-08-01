@@ -14,7 +14,7 @@ const PayrollHistory = () => {
   const fetchPayrollHistory = async () => {
     try {
       const response = await axios.get(
-        `${config.apiBaseUrlProd}/payroll/history`,
+        `${config.apiBaseUrl}/payroll/history`,
         {
           withCredentials: true,
         }

@@ -9,8 +9,8 @@ import logging
 
 app = Flask(__name__)
 app.debug = True
-CORS(app, supports_credentials=True,  resources={r"/*": {"origins": ["https://payroll.nftconsult.com", "http://localhost:3001"]}})
-
+CORS(app, supports_credentials=True)
+ 
 # Configuration
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
 app.config['SECRET_KEY'] = 'your_secret_key'

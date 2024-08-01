@@ -35,7 +35,7 @@ const App = () => {
     setLoggedIn(true);
     localStorage.setItem("loggedIn", "true");
     axios
-      .get(`${config.apiBaseUrlProd}/login-status`, { withCredentials: true })
+      .get(`${config.apiBaseUrl}/login-status`, { withCredentials: true })
       .then((response) => {
         if (response.data.loggedIn) {
           // console.log(response.dat)

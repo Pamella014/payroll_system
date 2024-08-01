@@ -20,7 +20,7 @@ const PAYEBreakdown = () => {
 
   const fetchSalaryDetails = async (payrollId) => {
     try {
-      const response = await axios.get(`${config.apiBaseUrlProd}/payroll/${payrollId}/calculations`, {
+      const response = await axios.get(`${config.apiBaseUrl}/payroll/${payrollId}/calculations`, {
         withCredentials: true
       });
       const data = response.data;
@@ -59,7 +59,7 @@ const PAYEBreakdown = () => {
     console.log('Payload:', payload); // Check the payload
 
     try {
-      const response = await axios.post(`${config.apiBaseUrlProd}/make-payment`, 
+      const response = await axios.post(`${config.apiBaseUrl}/make-payment`, 
         payload, 
         {
           withCredentials: true

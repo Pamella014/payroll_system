@@ -22,7 +22,7 @@ const NetSalaryBreakdown = () => {
   const fetchSalaryDetails = async (payrollId) => {
     try {
       const response = await axios.get(
-        `${config.apiBaseUrlProd}/payroll/${payrollId}/calculations`,
+        `${config.apiBaseUrl}/payroll/${payrollId}/calculations`,
         {
           withCredentials: true,
         }
@@ -73,7 +73,7 @@ const NetSalaryBreakdown = () => {
 
     try {
       const response = await axios.post(
-        `${config.apiBaseUrlProd}/make-payment`,
+        `${config.apiBaseUrl}/make-payment`,
         payload,
         {
           withCredentials: true,
