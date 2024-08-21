@@ -36,41 +36,44 @@ const NetSalaryBreakdown = () => {
   };
 
   const generateCSV = (data, filename, headers) => {
+    // Create CSV content with headers and data
     const csvContent = [
       headers,
-      ...data.map((emp) =>
-        headers.map(
-          (header) =>
-            emp[
-              header.toLowerCase().replace(/ /g, "").replace("number", "Number")
-            ]
-        )
-      ),
+      ...data.map((emp) => [
+        emp.name || '',  // Fallback to empty string if value is undefined
+        emp.netSalary || '',
+        emp.preferredPaymentMode || '',
+      ]),
     ];
-
-    const csvString = csvContent.map((e) => e.join(",")).join("\n");
+  
+    // Convert CSV content array to a string
+    const csvString = csvContent.map((row) => row.join(",")).join("\n");
+    
+    // Create and save the CSV file
     const blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
     saveAs(blob, filename);
   };
-
+  
   const handlePayAll = async () => {
     const netSalaryData = salaryDetails.map((employee) => ({
       name: employee.employee_name,
       netSalary: employee.net_salary,
       preferredPaymentMode: employee.preferred_payment_mode,
     }));
-
+  
+    console.log(netSalaryData);  // Log the data to verify
+  
     generateCSV(netSalaryData, "NetSalary_payments.csv", [
       "Name",
       "Net Salary",
       "Preferred Payment Mode",
     ]);
-
+  
     const payload = {
       type: "netSalary",
       payroll_id: payrollId,
     };
-
+  
     try {
       const response = await axios.post(
         `${config.apiBaseUrl}/make-payment`,
@@ -94,6 +97,7 @@ const NetSalaryBreakdown = () => {
       console.error("Error making payment:", error);
     }
   };
+  
 
   return (
     <div className="card">

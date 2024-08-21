@@ -35,6 +35,7 @@ class User(db.Model, UserMixin):
     username = db.Column(db.String(150), unique=True, nullable=False)
     email = db.Column(db.String(150), unique=True, nullable=False)
     password = db.Column(db.String(200), nullable=False)
+    tin_number = db.Column(db.String(20), unique=True, nullable=True) 
     employees = db.relationship('Employee', backref='registrant', lazy=True)
     payrolls = db.relationship('Payroll', backref='user', lazy=True)
 
@@ -215,11 +216,44 @@ def add_employee():
 @app.route('/register', methods=['POST'])
 def register():
     data = request.get_json()
-    hashed_password = bcrypt.generate_password_hash(data['password']).decode('utf-8')
-    new_user = User(username=data['username'], email=data['email'], password=hashed_password)
-    db.session.add(new_user)
-    db.session.commit()
-    return jsonify({'message': 'User registered successfully'}), 201
+
+    # Extract fields from the request data
+    username = data.get('username')
+    email = data.get('email')
+    password = data.get('password')
+    tin_number = data.get('tin_number')
+
+    # Validate the presence of required fields
+    if not username or not email or not password or not tin_number:
+        return jsonify({'message': 'Missing required fields'}), 400
+
+    # Check if the username or email already exists
+    if User.query.filter_by(username=username).first():
+        return jsonify({'message': 'Username already exists'}), 400
+    if User.query.filter_by(email=email).first():
+        return jsonify({'message': 'Email already exists'}), 400
+
+    # Hash the password
+    hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
+
+    # Create a new user instance
+    new_user = User(
+        username=username,
+        email=email,
+        tin_number=tin_number,  # Include the TIN number
+        password=hashed_password
+    )
+
+    # Add the new user to the database and commit
+    try:
+        db.session.add(new_user)
+        db.session.commit()
+        return jsonify({'message': 'User registered successfully'}), 201
+    except Exception as e:
+        db.session.rollback()
+        print(e)
+        return jsonify({'message': 'Error occurred during registration'}), 500
+
 
 @app.route('/login', methods=['POST'])
 def login():

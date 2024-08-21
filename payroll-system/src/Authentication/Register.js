@@ -8,6 +8,7 @@ const Register = () => {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [employerTIN, setEmployerTIN] = useState('');
   const navigate = useNavigate();
 
 
@@ -16,6 +17,7 @@ const Register = () => {
       username,
       email,
       password,
+      tin_number:employerTIN
     })
     .then(response => {
       const data = response.data;
@@ -46,6 +48,16 @@ const Register = () => {
                                     placeholder="Company Name"
                                     value={username}
                                     onChange={e => setUsername(e.target.value)}
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label>TIN</label> 
+                                <input
+                                type="text"
+                                className="form-control p_input"
+                                placeholder="Company TIN"
+                                value={employerTIN}
+                                onChange={e => setEmployerTIN(e.target.value)}
                                 />
                             </div>
                             <div class="form-group">
