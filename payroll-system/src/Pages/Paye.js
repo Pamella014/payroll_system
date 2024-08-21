@@ -49,7 +49,7 @@ const PAYEBreakdown = () => {
       tinNumber: employee.tin_number,
     }));
 
-    generateCSV(payeData, "PAYE_payments.csv", ["Name", "PAYE", "TIN Number"]);
+    generateCSV(payeData, "PAYE_payments.csv", ["Name", "PAYE", "TIN "]);
     
     const payload = { 
       type: 'paye', 
