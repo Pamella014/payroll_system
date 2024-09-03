@@ -49,9 +49,25 @@ class Employee(db.Model):
     gross_salary = db.Column(db.Float, nullable=False)
     tin_number = db.Column(db.String(100), nullable=False)
     nssf_number = db.Column(db.String(100), nullable=False)
+    resident_status = db.Column(db.String(20), nullable=False, default="Resident")  # 'Resident' or 'Non-Resident'
+    work_permit_number = db.Column(db.String(100), nullable=True)
     preferred_payment_mode = db.Column(db.String(100), nullable=False)
     mobile_number = db.Column(db.String(100), nullable=True)
     bank_account_number = db.Column(db.String(100), nullable=True)
+    
+    # New fields with default values of 0
+    housing_allowance = db.Column(db.Float, default=0)
+    transport_allowance = db.Column(db.Float, default=0)
+    medical_allowance = db.Column(db.Float, default=0)
+    leave_allowance = db.Column(db.Float, default=0)
+    overtime_allowance = db.Column(db.Float, default=0)
+    other_allowance = db.Column(db.Float, default=0)
+    
+    housing_benefit = db.Column(db.Float, default=0)
+    motor_vehicle_benefit = db.Column(db.Float, default=0)
+    domestic_servant_benefit = db.Column(db.Float, default=0)
+    other_benefit = db.Column(db.Float, default=0)
+    
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
     @property
@@ -68,16 +84,29 @@ class Employee(db.Model):
 
     def calculate_salaries(self):
         gross_salary = self.gross_salary
-        if gross_salary <= 235000:
-            paye = 0
-        elif gross_salary <= 335000:
-            paye = (gross_salary - 235000) * 0.1
-        elif gross_salary <= 410000:
-            paye = ((gross_salary - 335000) * 0.2) + 10000
-        elif gross_salary <= 10000000:
-            paye = ((gross_salary - 410000) * 0.3) + 25000
+       
+        if self.resident_status == 'Resident':
+            # Resident PAYE calculation
+            if gross_salary <= 235000:
+                paye = 0
+            elif gross_salary <= 335000:
+                paye = (gross_salary - 235000) * 0.1
+            elif gross_salary <= 410000:
+                paye = ((gross_salary - 335000) * 0.2) + 10000
+            elif gross_salary <= 10000000:
+                paye = ((gross_salary - 410000) * 0.3) + 25000
+            else:
+                paye = ((gross_salary - 410000) * 0.3) + 25000 + ((gross_salary - 10000000) * 0.1)
         else:
-            paye = ((gross_salary - 410000) * 0.3) + 25000 + ((gross_salary - 10000000) * 0.1)
+            # Non-Resident PAYE calculation
+            if gross_salary <= 4020000:
+                paye = (gross_salary * 0.1) / 12
+            elif gross_salary <= 4920000:
+                paye = (402000 + (gross_salary - 4020000) * 0.2) / 12
+            elif gross_salary <= 120000000:
+                paye = (582000 + (gross_salary - 4920000) * 0.3) / 12
+            else:
+                paye = (35106000 + (gross_salary - 120000000) * 0.4) / 12
 
         nssf = gross_salary * 0.05
         employer_nssf = gross_salary * 0.1
@@ -95,9 +124,21 @@ class Employee(db.Model):
             'preferredPaymentMode': self.preferred_payment_mode,
             'mobileNumber': self.mobile_number,
             'bankAccountNumber': self.bank_account_number,
-            'netSalary': self.net_salary,
-            'paye': self.paye,
-            'nssf': self.nssf
+            'residentStatus': self.resident_status,
+            'workPermitNumber': self.work_permit_number,
+            'housingAllowance': self.housing_allowance,
+            'transportAllowance': self.transport_allowance,
+            'medicalAllowance': self.medical_allowance,
+            'leaveAllowance': self.leave_allowance,
+            'overtimeAllowance': self.overtime_allowance,
+            'otherAllowance': self.other_allowance,
+            'housingBenefit': self.housing_benefit,
+            'motorVehicleBenefit': self.motor_vehicle_benefit,
+            'domesticServantBenefit': self.domestic_servant_benefit,
+            'otherBenefit': self.other_benefit,
+            'netSalary': self.calculate_salaries()['net_salary'],
+            'paye': self.calculate_salaries()['paye'],
+            'nssf': self.calculate_salaries()['nssf']
         }
 
 # Payroll model
@@ -199,19 +240,39 @@ def get_employees():
 @login_required
 def add_employee():
     data = request.get_json()
+    
     new_employee = Employee(
         name=data['name'],
         gross_salary=data['grossSalary'],
         tin_number=data['tinNumber'],
         nssf_number=data['nssfNumber'],
+        resident_status=data.get('residentStatus', 'Resident'),  # Default to 'Resident'
+        work_permit_number=data.get('workPermitNumber'),
         preferred_payment_mode=data['preferredPaymentMode'],
         mobile_number=data.get('mobileNumber'),
         bank_account_number=data.get('bankAccountNumber'),
+        
+        # Allowances and benefits with default values of 0 if not provided
+        housing_allowance=data.get('housingAllowance', 0),
+        transport_allowance=data.get('transportAllowance', 0),
+        medical_allowance=data.get('medicalAllowance', 0),
+        leave_allowance=data.get('leaveAllowance', 0),
+        overtime_allowance=data.get('overtimeAllowance', 0),
+        other_allowance=data.get('otherAllowance', 0),
+        
+        housing_benefit=data.get('housingBenefit', 0),
+        motor_vehicle_benefit=data.get('motorVehicleBenefit', 0),
+        domestic_servant_benefit=data.get('domesticServantBenefit', 0),
+        other_benefit=data.get('otherBenefit', 0),
+        
         user_id=current_user.id
     )
+    
     db.session.add(new_employee)
     db.session.commit()
+    
     return jsonify(new_employee.to_dict()), 201
+
 
 @app.route('/register', methods=['POST'])
 def register():
@@ -335,10 +396,21 @@ def calculate_salaries():
             'employee_id': employee.id,
             'gross_salary': employee.gross_salary,
             'nssf': salaries['nssf'],
-            'employer_nssf': salaries['employer_nssf'],  # Add this line
+            'employer_nssf': salaries['employer_nssf'],  
             'paye': salaries['paye'],
-            'net_salary': salaries['net_salary']
+            'net_salary': salaries['net_salary'],
+            'housingAllowance': employee.housing_allowance,
+            'transportAllowance': employee.transport_allowance,
+            'medicalAllowance': employee.medical_allowance,
+            'leaveAllowance': employee.leave_allowance,
+            'overtimeAllowance': employee.overtime_allowance,
+            'otherAllowance': employee.other_allowance,
+            'housingBenefit': employee.housing_benefit,
+            'motorVehicleBenefit': employee.motor_vehicle_benefit,
+            'domesticServantBenefit': employee.domestic_servant_benefit,
+            'otherBenefit': employee.other_benefit
         })
+
         print(f"Saved salary for employee {employee.id}")  # Add this line for debugging
 
     db.session.commit()
@@ -388,6 +460,16 @@ def get_payroll_calculations(payroll_id):
             'preferred_payment_mode': employee.preferred_payment_mode,
             'mobile_number': employee.mobile_number,
             'bank_account_number': employee.bank_account_number,
+            'housingAllowance': employee.housing_allowance,
+            'transportAllowance': employee.transport_allowance,
+            'medicalAllowance': employee.medical_allowance,
+            'leaveAllowance': employee.leave_allowance,
+            'overtimeAllowance': employee.overtime_allowance,
+            'otherAllowance': employee.other_allowance,
+            'housingBenefit': employee.housing_benefit,
+            'motorVehicleBenefit': employee.motor_vehicle_benefit,
+            'domesticServantBenefit': employee.domestic_servant_benefit,
+            'otherBenefit': employee.other_benefit
         })
 
     return jsonify({
